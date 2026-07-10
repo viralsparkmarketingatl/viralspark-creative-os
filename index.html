@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Viral Spark Creative OS</title>
+<meta name="description" content="Viral Spark Creative OS — batch on-brand graphics + viral video scripts.">
+<meta name="theme-color" content="#0A0F1C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Creative OS">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:ital,wght@1,800;1,900&family=Outfit:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --vs-blue:#3B82F6; --vs-blue-dark:#2563EB; --vs-blue-soft:rgba(59,130,246,0.08);
+  --vs-navy:#0A0F1C; --vs-navy-2:#141B2D;
+  --vs-bg:#F5F6F8; --vs-card:#FFFFFF;
+  --vs-text:#1D1D1F; --vs-text-2:#6E6E73; --vs-text-3:#A1A1A6;
+  --vs-line:rgba(0,0,0,0.08);
+  --f-display:'Outfit',system-ui,sans-serif; --f-body:'Manrope',system-ui,sans-serif; --f-mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--f-body);background:var(--vs-bg);color:var(--vs-text);-webkit-font-smoothing:antialiased}
+.app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{background:var(--vs-navy);color:#fff;padding:24px 16px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:6px 8px 22px}
+.brand .mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--vs-blue),#22D3EE);display:flex;align-items:center;justify-content:center;font-family:var(--f-display);font-weight:800;font-size:15px;color:#fff}
+.brand .name{font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:-.01em;line-height:1.1}
+.brand .name small{display:block;font-family:var(--f-mono);font-weight:500;font-size:9px;letter-spacing:.18em;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:2px}
+.navlabel{font-family:var(--f-mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.35);margin:18px 10px 8px}
+.navbtn{display:flex;align-items:center;gap:11px;width:100%;text-align:left;border:none;background:transparent;color:rgba(255,255,255,.72);font-family:var(--f-display);font-weight:600;font-size:14px;padding:11px 12px;border-radius:10px;cursor:pointer;transition:.15s;margin-bottom:2px}
+.navbtn:hover{background:rgba(255,255,255,.06);color:#fff}
+.navbtn.active{background:var(--vs-blue);color:#fff}
+.navbtn .ic{width:18px;text-align:center;font-size:15px;opacity:.9}
+.navbtn.soon{opacity:.45;cursor:not-allowed}
+.navbtn .tag{margin-left:auto;font-family:var(--f-mono);font-size:8px;letter-spacing:.1em;background:rgba(255,255,255,.12);padding:2px 6px;border-radius:5px;text-transform:uppercase}
+
+/* WORKSPACE */
+.work{padding:30px 40px 60px;max-width:1400px}
+.screen{display:none} .screen.on{display:block}
+.script-out{font-size:14px;line-height:1.6;color:var(--vs-text-2);max-height:72vh;overflow:auto;padding-right:2px}
+.script-out h3{font-family:var(--f-display,inherit);font-weight:700;font-size:16px;color:var(--vs-blue,#3B82F6);margin:26px 0 8px;padding:14px 0 0 12px;border-top:1px solid var(--vs-line,rgba(255,255,255,.12));border-left:3px solid var(--vs-blue,#3B82F6)}
+.script-out h3:first-child{margin-top:2px;border-top:0;padding-top:2px}
+.script-out table{width:100%;border-collapse:collapse;margin:12px 0 4px;font-size:12.5px}
+.script-out th,.script-out td{border:1px solid var(--vs-line,rgba(255,255,255,.12));padding:8px 10px;text-align:left;vertical-align:top}
+.script-out th{background:rgba(59,130,246,.16);font-weight:600;color:var(--vs-text-1,#fff)}
+.script-out td:first-child,.script-out th:first-child{white-space:nowrap;width:1%;font-weight:600}
+.script-out tr:nth-child(even) td{background:rgba(255,255,255,.03)}
+.script-out strong{color:var(--vs-text-1,#fff)}
+.script-out hr{border:0;border-top:1px dashed var(--vs-line,rgba(255,255,255,.14));margin:18px 0}
+.script-out p{margin:6px 0}
+.script-out code{font-family:var(--f-mono,monospace);font-size:12px;background:rgba(59,130,246,.12);color:var(--vs-blue,#3B82F6);padding:1px 6px;border-radius:5px}
+.refthumbs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.refthumb{position:relative;width:76px;height:76px;border-radius:8px;overflow:hidden;border:1px solid var(--vs-line,rgba(255,255,255,.14))}
+.refthumb img{width:100%;height:100%;object-fit:cover;display:block}
+.refthumb button{position:absolute;top:2px;right:2px;width:20px;height:20px;border:0;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;font-size:14px;line-height:1;cursor:pointer;padding:0}
+.refthumb:first-child{border-color:var(--vs-blue,#3B82F6)}
+.refthumb .reftag{position:absolute;bottom:0;left:0;right:0;background:rgba(59,130,246,.9);color:#fff;font-size:9px;font-weight:700;text-align:center;letter-spacing:.04em;padding:1px 0}
+.refthumbs .refcount{width:100%;font-size:11px;color:var(--vs-text-3,#8a93a6);margin-top:2px}
+.head{margin-bottom:24px}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--vs-blue);margin-bottom:8px}
+h1.title{font-family:var(--f-display);font-weight:700;font-size:32px;letter-spacing:-.025em;color:var(--vs-navy)}
+.subt{font-size:14px;color:var(--vs-text-2);margin-top:6px;max-width:640px;line-height:1.55}
+
+.card{background:var(--vs-card);border:1px solid var(--vs-line);border-radius:18px;box-shadow:0 1px 3px rgba(15,23,42,.05),0 14px 34px -18px rgba(15,23,42,.14);padding:24px;margin-bottom:20px}
+.grid2{display:grid;grid-template-columns:400px 1fr;gap:20px;align-items:start}
+label.f{display:block;font-family:var(--f-mono);font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--vs-text-2);margin:16px 0 7px}
+input,select,textarea{width:100%;border:1px solid var(--vs-line);border-radius:11px;padding:11px 13px;font-family:var(--f-body);font-size:14px;background:#fff;color:var(--vs-text)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--vs-blue);box-shadow:0 0 0 3px var(--vs-blue-soft)}
+textarea{min-height:64px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{border:none;border-radius:12px;padding:13px 18px;font-family:var(--f-display);font-weight:700;font-size:14px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.primary{background:var(--vs-blue);color:#fff}
+.btn.primary:hover{background:var(--vs-blue-dark)}
+.btn.dark{background:var(--vs-navy);color:#fff}
+.btn.ghost{background:#EEF1F5;color:var(--vs-navy)}
+.btn.full{width:100%}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.actions{display:grid;gap:10px;margin-top:20px}
+.hint{font-size:12px;color:var(--vs-text-3);margin-top:6px;line-height:1.45}
+.status{font-family:var(--f-mono);font-size:12px;color:var(--vs-text-2);background:#F0F2F5;border:1px solid var(--vs-line);border-radius:12px;padding:12px 14px;margin-bottom:16px}
+.status.busy{color:var(--vs-blue-dark);background:var(--vs-blue-soft);border-color:rgba(59,130,246,.25)}
+.previewGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.pcard{border:1px solid var(--vs-line);border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.pcard img{width:100%;display:block;background:#0A2547}
+.pcard .pf{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px}
+.pcard .pf span{font-family:var(--f-mono);font-size:11px;color:var(--vs-text-2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.pcard .pf button{border:none;background:var(--vs-blue);color:#fff;font-family:var(--f-display);font-weight:700;font-size:11px;padding:7px 11px;border-radius:8px;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chip{font-family:var(--f-mono);font-size:11px;background:#EEF1F5;border:1px solid var(--vs-line);border-radius:8px;padding:6px 10px;color:var(--vs-navy)}
+.kv{display:grid;grid-template-columns:120px 1fr;gap:8px 14px;font-size:13px;margin-top:4px}
+.kv b{color:var(--vs-text-2);font-weight:600}
+.swatch{display:inline-block;width:15px;height:15px;border-radius:4px;vertical-align:-2px;margin-right:6px;border:1px solid rgba(0,0,0,.1)}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.tcard{border:1px solid var(--vs-line);border-radius:14px;padding:16px;background:#fff}
+.tcard.active{border-color:var(--vs-blue);box-shadow:0 0 0 3px var(--vs-blue-soft)}
+.tcard h3{font-family:var(--f-display);font-size:16px;margin-bottom:6px}
+.tcard p{font-size:12.5px;color:var(--vs-text-2);line-height:1.5}
+.tcard .badge{font-family:var(--f-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--vs-blue);margin-bottom:8px;display:inline-block}
+.tcard.soon{opacity:.6}
+canvas#stage{display:none}
+.mono-out{font-family:var(--f-mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;background:var(--vs-navy);color:#E2E8F0;padding:16px;border-radius:12px;max-height:320px;overflow:auto}
+@media(max-width:1000px){.app{grid-template-columns:1fr}.sidebar{position:static;height:auto}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark">VS</div>
+      <div class="name">Creative OS<small>Viral Spark</small></div>
+    </div>
+    <div class="navlabel">Produce</div>
+    <button class="navbtn active" data-screen="generate"><span class="ic">⚡</span> GBP Generator</button>
+    <button class="navbtn" data-screen="scripts"><span class="ic">✍</span> Script Generator</button>
+    <button class="navbtn soon" disabled><span class="ic">◈</span> Ad Generator <span class="tag">Soon</span></button>
+    <div class="navlabel">Library</div>
+    <button class="navbtn" data-screen="brandkits"><span class="ic">◉</span> Brand Kits</button>
+    <button class="navbtn" data-screen="templates"><span class="ic">▤</span> Templates</button>
+    <button class="navbtn soon" disabled><span class="ic">✎</span> Prompt Library <span class="tag">Soon</span></button>
+    <button class="navbtn soon" disabled><span class="ic">↗</span> Publishing <span class="tag">Soon</span></button>
+    <div class="navlabel">System</div>
+    <button class="navbtn" data-screen="settings"><span class="ic">⚙</span> Settings</button>
+  </aside>
+
+  <!-- WORKSPACE -->
+  <main class="work">
+    <!-- GENERATE -->
+    <section class="screen on" id="screen-generate">
+      <div class="head">
+        <div class="eyebrow">Batch Production</div>
+        <h1 class="title">GBP Graphic Generator</h1>
+        <p class="subt">Pick a client + template, drop in product photos, and export a full batch of branded Google Business Profile graphics. Your logo and layout stay locked — only the photo and headline change.</p>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <label class="f">Client</label>
+          <select id="clientSel"></select>
+          <label class="f">Template</label>
+          <select id="templateSel"></select>
+
+          <label class="f">Headline Set — how to fill the eyebrow + subline on each graphic</label>
+          <select id="copyMode">
+            <option value="rotate">Rotate through built-in mattress headlines</option>
+            <option value="single">Use one headline for all</option>
+            <option value="ai">Generate fresh headlines with AI (uses your OpenAI key)</option>
+          </select>
+
+          <div id="singleWrap" style="display:none">
+            <label class="f">Eyebrow banner</label>
+            <input id="eyebrowIn" value="MEMORY FOAM MEGA SALE!">
+            <label class="f">Subline</label>
+            <input id="sublineIn" value="COOLING GEL TECH. ALL SIZES.">
+          </div>
+
+          <label class="f">Image source</label>
+          <select id="imgMode">
+            <option value="airef">⭐ Full poster from reference (GPT Image 2 — best quality)</option>
+            <option value="ai">AI mattress + code frame (hybrid)</option>
+            <option value="upload">Upload my own product photos</option>
+          </select>
+
+          <div id="uploadWrap" style="display:none">
+            <label class="f">Product photos (select many)</label>
+            <input id="photos" type="file" accept="image/*" multiple>
+            <div class="hint">Each photo becomes one finished graphic. Landscape showroom/product shots work best.</div>
+          </div>
+
+          <div id="aiWrap">
+            <div id="styleRefWrap">
+              <label class="f">Style references — the app recreates this design (add up to 5 for more accuracy)</label>
+              <div id="styleRefThumbs" class="refthumbs"></div>
+              <input id="styleRefInput" type="file" accept="image/*" multiple>
+              <div class="hint">A Compare Deals poster is loaded by default. <b>Add more</b> and GPT Image 2 uses them together — e.g. the reference poster + a clean logo + the exact mattress you want. Click × to remove one.</div>
+            </div>
+            <label class="f">How many posts to generate</label>
+            <input id="aiCount" type="number" min="1" max="50" value="4">
+            <label class="f">Scene direction (optional — added to every prompt)</label>
+            <textarea id="aiExtra" placeholder="e.g. luxury Stearns & Foster style showroom, warm lighting"></textarea>
+            <div class="hint"><b>Reference mode</b> sends your poster to the AI so it copies the layout exactly and only changes the headline + mattress. <b>Hybrid mode</b> generates just the photo and stamps a code frame. ~$0.02–0.19 per image on your OpenAI account. Set the endpoint in Settings first.</div>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary full" id="genBtn">Generate Graphics</button>
+            <button class="btn dark full" id="dlAllBtn">Download All</button>
+            <button class="btn ghost full" id="clearBtn">Clear</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="status" id="status">No graphics yet. Add photos and hit Generate.</div>
+          <div class="previewGrid" id="previewGrid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCRIPT GENERATOR -->
+    <section class="screen" id="screen-scripts">
+      <div class="head">
+        <div class="eyebrow">Viral Hook Library</div>
+        <h1 class="title">Script Generator</h1>
+        <p class="subt">Every script is written through the Viral Communication Skill — manufactured novelty → re-hook every 5–8s → stacked trust → an aligned off-ramp. Pick a client and a topic; the engine returns camera-ready scripts with a VERBAL + VISUAL beat sheet. Powered by Claude on your Anthropic key (set the endpoint in Settings).</p>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <label class="f">Video style — pulls only this style's proven entries from your 959-video library</label>
+          <select id="scStyle">
+            <option value="educational">Educational (475 entries)</option>
+            <option value="storytelling">Storytelling (339 entries)</option>
+            <option value="myth-busting">Myth-Busting (55 entries)</option>
+            <option value="authority">Authority (44 entries)</option>
+            <option value="comparison">Comparison (31 entries)</option>
+            <option value="day-in-the-life">Day-in-the-Life (15 entries)</option>
+            <option value="all">Any / all styles (uses the full 959)</option>
+          </select>
+
+          <label class="f">Client</label>
+          <select id="scClient"></select>
+
+          <label class="f">Topic / angle — what's this video about?</label>
+          <textarea id="scTopic" placeholder="e.g. why polymeric sand is the #1 thing that makes a paver patio last 30 years"></textarea>
+
+          <label class="f">Target length</label>
+          <select id="scLength">
+            <option>15 seconds</option>
+            <option selected>30 seconds</option>
+            <option>45 seconds</option>
+            <option>60 seconds</option>
+          </select>
+
+          <label class="f">Goal / off-ramp (CTA)</label>
+          <select id="scGoal">
+            <option>Free lead magnet via comment keyword</option>
+            <option>Book a free estimate / consult</option>
+            <option>Text / DM us</option>
+            <option>Call now</option>
+            <option>Visit the website / landing page</option>
+            <option>Follow for the series</option>
+          </select>
+
+          <label class="f">Variations</label>
+          <input id="scCount" type="number" min="1" max="6" value="3">
+
+          <label class="f">Extra direction (optional)</label>
+          <textarea id="scExtra" placeholder="e.g. film on-site at a finished patio, mention Techo-Bloc, keep it Grayson GA specific"></textarea>
+
+          <div class="hint">Every script is built against your <b>full library — all 959 dissected videos</b> (their hook formulas + adapt notes) plus the master framework. Claude finds the closest-matching proven hooks to your topic and adapts their structure. ~$0.20–1.00 per cold batch, ~$0.20 for follow-ups within a few minutes (prompt-cached).</div>
+
+          <div class="actions">
+            <button class="btn primary full" id="scGenBtn">Generate Scripts</button>
+            <button class="btn dark full" id="scCopyBtn">Copy All</button>
+            <button class="btn dark full" id="scDlBtn">Download .md</button>
+            <button class="btn ghost full" id="scClearBtn">Clear</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="status" id="scStatus">No scripts yet. Pick a client + topic and hit Generate.</div>
+          <div id="scOut" class="script-out"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BRAND KITS -->
+    <section class="screen" id="screen-brandkits">
+      <div class="head">
+        <div class="eyebrow">Client Memory</div>
+        <h1 class="title">Brand Kits</h1>
+        <p class="subt">Every client's logo, colors, offer, and locations live here once. Templates read from the active kit, so you never re-enter brand details. Edits save automatically in this browser.</p>
+      </div>
+      <div class="card">
+        <h3 style="font-family:var(--f-display);font-weight:700;font-size:19px;margin-bottom:4px">Compare Deals <span style="font-family:var(--f-mono);font-size:11px;color:var(--vs-text-3)">· active</span></h3>
+        <div class="chips">
+          <span class="chip">Discount mattress & appliance outlet</span>
+          <span class="chip">Lawrenceville, GA</span>
+          <span class="chip">Morrow, GA</span>
+        </div>
+        <div class="row" style="margin-top:16px">
+          <div>
+            <label class="f">Offer</label><input id="bkOffer">
+            <label class="f">Locations line</label><input id="bkLocations">
+            <label class="f">CTA line 1</label><input id="bkCta1">
+            <label class="f">CTA line 2</label><input id="bkCta2">
+          </div>
+          <div>
+            <label class="f">Navy</label><input id="bkNavy">
+            <label class="f">Yellow</label><input id="bkYellow">
+            <label class="f">Blue accent</label><input id="bkBlue">
+            <div class="kv" style="margin-top:16px">
+              <b>Logo</b><span><img id="bkLogo" style="height:46px;background:#0A2547;padding:6px;border-radius:8px" alt="logo"></span>
+            </div>
+          </div>
+        </div>
+        <div class="actions"><button class="btn primary" style="width:200px" id="bkSave">Save Brand Kit</button></div>
+      </div>
+      <div class="card">
+        <h3 style="font-family:var(--f-display);font-weight:700;font-size:16px;margin-bottom:10px">Coming online next</h3>
+        <div class="tgrid">
+          <div class="tcard soon"><span class="badge">Queued</span><h3>Ruby Veterinary</h3><p>Pet care GBP + education posts.</p></div>
+          <div class="tcard soon"><span class="badge">Queued</span><h3>Kaizenscapes</h3><p>Outdoor living / landscape posts.</p></div>
+          <div class="tcard soon"><span class="badge">Queued</span><h3>Primetime Pools</h3><p>Pool build + featured project posts.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TEMPLATES -->
+    <section class="screen" id="screen-templates">
+      <div class="head">
+        <div class="eyebrow">The Engine</div>
+        <h1 class="title">Templates</h1>
+        <p class="subt">Each template is a locked design recreated in code from a graphic you approved. Give me a reference image, I turn it into one of these, and every generator stamps photos into it — perfect logo, perfect text, every time. Goal: 8–10 templates.</p>
+      </div>
+      <div class="tgrid">
+        <div class="tcard active"><span class="badge">Live</span><h3>Compare Deals — Mattress Retail Sale</h3><p>Navy field, 60–70% off headline, product photo, 4 trust icons, dual-location CTA, yellow "Shop More / Save More" corner.</p></div>
+        <div class="tcard soon"><span class="badge">Next</span><h3>Appliance Retail Sale</h3><p>Same frame, appliance-oriented icons + copy.</p></div>
+        <div class="tcard soon"><span class="badge">Next</span><h3>Furniture / Clearance</h3><p>Clearance-event variant.</p></div>
+        <div class="tcard soon"><span class="badge">Planned</span><h3>Square (1080×1080)</h3><p>Instagram / Facebook feed size of the same design.</p></div>
+        <div class="tcard soon"><span class="badge">Planned</span><h3>Story (1080×1920)</h3><p>Vertical GBP / Reels / Stories size.</p></div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="screen" id="screen-settings">
+      <div class="head">
+        <div class="eyebrow">System</div>
+        <h1 class="title">Settings</h1>
+        <p class="subt">Your OpenAI key powers the AI copy features (headlines, captions). It is stored only in this browser (localStorage) — never uploaded, never in a file. The graphic engine works fully without a key.</p>
+      </div>
+      <div class="card" style="max-width:640px">
+        <label class="f">OpenAI API key</label>
+        <input id="apiKey" type="password" placeholder="sk-...">
+        <label class="f">Model (text)</label>
+        <select id="apiModel">
+          <option value="gpt-4o-mini">gpt-4o-mini (cheap, fast — recommended)</option>
+          <option value="gpt-4o">gpt-4o (higher quality)</option>
+        </select>
+        <label class="f">Image API endpoint (Vercel function URL)</label>
+        <input id="imgEndpoint" placeholder="https://creative-os-api.vercel.app/api/generate-image">
+        <div class="hint">Powers "Generate scenes with AI". Deploy the <b>creative-os-api</b> folder to Vercel (see its README) and paste the resulting URL here.</div>
+        <label class="f">Script API endpoint (Vercel function URL)</label>
+        <input id="scriptEndpoint" placeholder="https://creative-os-api.vercel.app/api/generate-script">
+        <div class="hint">Powers the Script Generator (Claude). Same Vercel project — just the <b>/api/generate-script</b> path. Set <b>ANTHROPIC_API_KEY</b> in Vercel env vars.</div>
+        <div class="actions">
+          <button class="btn primary" style="width:180px" id="saveKey">Save Key</button>
+          <button class="btn ghost" style="width:180px" id="testKey">Test Connection</button>
+        </div>
+        <div class="status" id="keyStatus" style="margin-top:16px">No key saved. Template graphics still work.</div>
+        <div class="mono-out" id="aiOut" style="display:none"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<canvas id="stage" width="1200" height="900"></canvas>
+
+<script src="vs-assets.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const LS = {
+  get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},
+  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))
+};
+// Default API endpoints so a fresh device works with zero setup (only if not already set)
+if(!LS.get('vs_image_endpoint','')) LS.set('vs_image_endpoint','https://creative-os-api.vercel.app/api/generate-image');
+if(!LS.get('vs_script_endpoint','')) LS.set('vs_script_endpoint','https://creative-os-api.vercel.app/api/generate-script');
+
+/* ---------- BRAND KITS ---------- */
+const DEFAULT_CD = {
+  name:'Compare Deals',
+  navy:'#0A2547', yellow:'#FDC21C', blue:'#1C63C6', white:'#FFFFFF',
+  offer:'60-70%',
+  locations:'LAWRENCEVILLE, GA   |   MORROW, GA',
+  cta1:'SHOP MORE.', cta2:'SAVE MORE.',
+  logo: window.COMPARE_DEALS_LOGO || ''
+};
+let brandKits = LS.get('vs_brandkits', { 'compare-deals': DEFAULT_CD });
+if(window.COMPARE_DEALS_LOGO) brandKits['compare-deals'].logo = window.COMPARE_DEALS_LOGO; // always use the embedded real logo
+function saveKits(){ LS.set('vs_brandkits', brandKits); }
+
+/* ---------- BUILT-IN HEADLINE SETS (no AI needed) ---------- */
+const MATTRESS_PRESETS = [
+  {e:'MEMORY FOAM MEGA SALE!',  s:'COOLING GEL TECH.',  a:'ALL SIZES.',      bar:'blue'},
+  {e:'HYBRID MATTRESS EVENT!',  s:'COIL + FOAM.',        a:'BEST OF BOTH.',   bar:'blue'},
+  {e:'KING SIZE BLOWOUT!',      s:'UPGRADE YOUR SLEEP TODAY.', a:'',          bar:'white'},
+  {e:'PILLOW-TOP CLEARANCE!',   s:'PLUSH COMFORT.',      a:'EVERY SIZE.',     bar:'blue'},
+  {e:'ADJUSTABLE BASE SALE!',   s:'POWER YOUR SLEEP.',   a:'IN STOCK NOW.',   bar:'blue'},
+  {e:'ORTHOPEDIC SUPPORT SALE!',s:'BACK RELIEF.',        a:'DOCTOR APPROVED.',bar:'blue'},
+  {e:'LUXURY FIRM EVENT!',      s:'HOTEL-QUALITY FEEL.', a:'HALF THE PRICE.', bar:'blue'},
+  {e:'QUEEN SET SPECIAL!',      s:'MATTRESS + BASE.',    a:'ONE LOW PRICE.',  bar:'blue'}
+];
+
+/* ---------- CANVAS TEMPLATE: Compare Deals Mattress Retail Sale ---------- */
+const W=1200, H=900;
+let logoImg=null;
+function loadImg(src){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src;});}
+function fileToURL(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f);});}
+
+function cover(ctx,img,x,y,w,h){const s=Math.max(w/img.width,h/img.height);const sw=w/s,sh=h/s,sx=(img.width-sw)/2,sy=(img.height-sh)/2;ctx.drawImage(img,sx,sy,sw,sh,x,y,w,h);}
+function poly(ctx,pts,fill){ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.closePath();ctx.fillStyle=fill;ctx.fill();}
+function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+// italic heavy text (Anton has no italic — we skew it)
+function ital(ctx,txt,x,y,size,fill,{stroke=null,ls=0,shadow=false,align='left'}={}){
+  ctx.save();
+  // real heavy italic (Archivo 900 italic) — matches the reference's condensed-heavy look far better than a synthetic slant
+  ctx.font=`italic 900 ${size}px Archivo, 'Arial Black', sans-serif`;
+  ctx.textBaseline='alphabetic'; ctx.textAlign=align;
+  ctx.letterSpacing=(ls)+'px';
+  if(shadow){ctx.shadowColor='rgba(0,0,0,.35)';ctx.shadowBlur=size*0.08;ctx.shadowOffsetX=size*0.03;ctx.shadowOffsetY=size*0.05;}
+  if(stroke){ctx.lineJoin='round';ctx.strokeStyle=stroke.c;ctx.lineWidth=stroke.w;ctx.strokeText(txt,x,y);}
+  ctx.fillStyle=fill; ctx.fillText(txt,x,y);
+  ctx.restore();
+}
+function plain(ctx,txt,x,y,size,fill,{align='left',ls=0,weight=800}={}){
+  ctx.save();ctx.font=`${weight} ${size}px Outfit, sans-serif`;ctx.textAlign=align;ctx.textBaseline='alphabetic';ctx.letterSpacing=ls+'px';ctx.fillStyle=fill;ctx.fillText(txt,x,y);ctx.restore();
+}
+function iconCircle(ctx,cx,cy,r,accent,draw){ctx.save();ctx.strokeStyle=accent;ctx.lineWidth=4;ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.stroke();ctx.strokeStyle=accent;ctx.fillStyle=accent;ctx.lineWidth=3.4;draw(ctx,cx,cy);ctx.restore();}
+
+function renderTemplate(ctx, photo, brand, copy){
+  const NAVY=brand.navy, YEL=brand.yellow, BLUE=brand.blue, WHITE='#fff';
+  ctx.clearRect(0,0,W,H);
+  // bg navy gradient
+  let g=ctx.createLinearGradient(0,0,W,H); g.addColorStop(0,'#0C2540'); g.addColorStop(1,'#08203A');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+
+  // PHOTO (top-right, diagonal seam)
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(600,0); ctx.lineTo(W,0); ctx.lineTo(W,650); ctx.lineTo(520,650); ctx.closePath();
+  ctx.clip();
+  if(photo) cover(ctx,photo,505,0,W-505,660);
+  // seam shadow for legibility
+  let sg=ctx.createLinearGradient(505,0,760,0); sg.addColorStop(0,'rgba(7,26,50,.92)'); sg.addColorStop(1,'rgba(7,26,50,0)');
+  ctx.fillStyle=sg; ctx.fillRect(505,0,300,660);
+  ctx.restore();
+
+  // EYEBROW banner (auto-sized to the text so any headline fits)
+  const eb='— '+copy.eyebrow+' —';
+  ctx.save();ctx.font='italic 900 30px Archivo, sans-serif';ctx.letterSpacing='1px';const ebw=ctx.measureText(eb).width;ctx.restore();
+  const ebW=Math.max(300, ebw+56);
+  poly(ctx,[[42,24],[42+ebW,24],[42+ebW-20,82],[22,82]],YEL);
+  ital(ctx,eb,42+ebW/2,68,30,NAVY,{ls:1,align:'center'});
+
+  // HEADLINE
+  ital(ctx,'SAVE UP TO',44,176,64,WHITE,{ls:1,shadow:true});
+  // big number — strip % from the offer, then place a real superscript % right after it
+  const numMain=(brand.offer||'').replace('%','').trim();
+  ital(ctx,numMain,36,388,222,YEL,{stroke:{c:NAVY,w:13},ls:-4,shadow:true});
+  ctx.save();ctx.font='italic 900 222px Archivo, sans-serif';ctx.letterSpacing='-4px';const _nw=ctx.measureText(numMain).width;ctx.restore();
+  ital(ctx,'%',52+_nw,306,110,YEL,{stroke:{c:NAVY,w:8}});
+  ital(ctx,'OFF RETAIL!',44,456,84,WHITE,{ls:1,shadow:true});
+
+  // SUBLINE bar (auto-sized to the text)
+  const barCol = copy.bar==='white' ? '#FFFFFF' : BLUE;
+  const subTxtCol = copy.bar==='white' ? NAVY : WHITE;
+  const subFull = copy.subline + (copy.accent?(' '+copy.accent):'');
+  ctx.save();ctx.font='italic 900 32px Archivo, sans-serif';ctx.letterSpacing='.5px';const sbw=ctx.measureText(subFull).width;ctx.restore();
+  const sbW=Math.max(360, sbw+52);
+  poly(ctx,[[42,486],[42+sbW,486],[42+sbW-20,540],[22,540]],barCol);
+  ctx.save();ctx.font='italic 900 32px Archivo, sans-serif';ctx.textBaseline='alphabetic';ctx.letterSpacing='.5px';
+  ctx.fillStyle=subTxtCol; ctx.fillText(copy.subline, 56, 524);
+  if(copy.accent){ const w=ctx.measureText(copy.subline+' ').width; ctx.fillStyle=(copy.bar==='white'?BLUE:YEL); ctx.fillText(copy.accent, 56+w, 524);}
+  ctx.restore();
+
+  // 4 ICONS
+  const cxs=[96,255,414,555], cy=595, r=40;
+  const drawTag=(c,x,y)=>{c.beginPath();c.moveTo(x-18,y-14);c.lineTo(x+6,y-14);c.lineTo(x+22,y+2);c.lineTo(x-2,y+24);c.lineTo(x-22,y+4);c.closePath();c.stroke();c.beginPath();c.arc(x+2,y-6,3.5,0,7);c.stroke();c.save();c.font='bold 15px Outfit';c.textAlign='center';c.fillText('$',x-6,y+16);c.restore();};
+  const drawBadge=(c,x,y)=>{c.beginPath();for(let i=0;i<12;i++){const a=i*Math.PI/6;const rr2=i%2?15:21;c.lineTo(x+Math.cos(a)*rr2,y+Math.sin(a)*rr2);}c.closePath();c.stroke();c.beginPath();c.moveTo(x-9,y);c.lineTo(x-2,y+8);c.lineTo(x+11,y-9);c.stroke();};
+  const drawTruck=(c,x,y)=>{c.strokeRect(x-26,y-12,34,22);c.beginPath();c.moveTo(x+8,y-4);c.lineTo(x+20,y-4);c.lineTo(x+26,y+3);c.lineTo(x+26,y+10);c.lineTo(x+8,y+10);c.stroke();c.beginPath();c.arc(x-14,y+14,6,0,7);c.arc(x+18,y+14,6,0,7);c.stroke();};
+  const drawCard=(c,x,y)=>{c.strokeRect(x-26,y-16,52,32);c.beginPath();c.moveTo(x-26,y-6);c.lineTo(x+26,y-6);c.stroke();c.strokeRect(x-20,y+4,16,7);};
+  const draws=[drawTag,drawBadge,drawTruck,drawCard];
+  const labels=[['OUTLET','PRICES'],['QUALITY','YOU TRUST'],['DELIVERY','AVAILABLE'],['FINANCING','AVAILABLE']];
+  cxs.forEach((x,i)=>{
+    iconCircle(ctx,x,cy,r,YEL,draws[i]);
+    ctx.save();ctx.textAlign='center';ctx.fillStyle=WHITE;ctx.font='800 16px Outfit';
+    ctx.fillText(labels[i][0],x,cy+r+24);ctx.fillText(labels[i][1],x,cy+r+44);ctx.restore();
+    if(i<3){ctx.strokeStyle=YEL;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo((x+cxs[i+1])/2,cy-34);ctx.lineTo((x+cxs[i+1])/2,cy+34);ctx.stroke();}
+  });
+
+  // LOGO bottom-left
+  if(logoImg){const lw=196, lh=logoImg.height*(lw/logoImg.width); ctx.drawImage(logoImg,34,H-lh-16,lw,lh);}
+
+  // LOCATIONS pill + line
+  rr(ctx,232,712,470,50,25); ctx.fillStyle=WHITE; ctx.fill();
+  // pin
+  ctx.save();ctx.fillStyle=BLUE;ctx.beginPath();ctx.arc(266,730,9,Math.PI,0);ctx.lineTo(266,748);ctx.closePath();ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(266,730,3.5,0,7);ctx.fill();ctx.restore();
+  plain(ctx,'2 CONVENIENT LOCATIONS!',288,745,22,NAVY,{weight:800,ls:.5});
+  plain(ctx,brand.locations,232,800,22,WHITE,{weight:800,ls:.5});
+
+  // YELLOW cart corner (bottom-right)
+  poly(ctx,[[772,688],[W,656],[W,H],[720,H]],YEL);
+  // cart icon (navy) — on the left of the block, clear of the text
+  ctx.save();ctx.strokeStyle=NAVY;ctx.lineWidth=9;ctx.lineJoin='round';ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(766,762);ctx.lineTo(786,762);ctx.lineTo(806,828);ctx.lineTo(864,828);ctx.lineTo(880,782);ctx.lineTo(794,782);ctx.stroke();
+  ctx.beginPath();ctx.arc(816,850,9,0,7);ctx.moveTo(870,850);ctx.arc(861,850,9,0,7);ctx.stroke();ctx.restore();
+  // right-aligned so it never clips the edge
+  ital(ctx,(brand.cta1||'SHOP MORE.'),1182,798,40,NAVY,{ls:.5,align:'right'});
+  ital(ctx,(brand.cta2||'SAVE MORE.'),1182,852,40,BLUE,{ls:.5,align:'right'});
+
+  return ctx.canvas.toDataURL('image/png');
+}
+
+/* ---------- AI SCENE GENERATION (via Vercel function) ---------- */
+const SCENE_DESCS=[
+ 'A plush king-size pillow-top mattress on a navy upholstered bed frame in a bright modern showroom',
+ 'A memory foam mattress with a visible blue cooling-gel layer shown in a clean cutaway',
+ 'A hybrid mattress cross-section showing pocketed coils and foam layers in an upscale store',
+ 'A luxury tufted mattress set with deep navy accent pillows and warm lamp lighting',
+ 'An adjustable base mattress gently elevated in a bright contemporary showroom',
+ 'A queen mattress set with premium white bedding and a tufted headboard',
+ 'A firm orthopedic mattress on a modern platform bed in a clean showroom',
+ 'A cozy plush mattress with layered pillows in a warm, inviting bedroom display'
+];
+function getEndpoint(){ return LS.get('vs_image_endpoint',''); }
+let styleRefs = window.CD_STYLE_REF ? [window.CD_STYLE_REF] : [];
+async function resizeDataURL(url,maxW){ const img=await loadImg(url); if(img.width<=maxW) return url; const c=document.createElement('canvas'); const s=maxW/img.width; c.width=maxW; c.height=Math.round(img.height*s); c.getContext('2d').drawImage(img,0,0,c.width,c.height); return c.toDataURL('image/jpeg',0.85); }
+async function callImage(prompt, refImages){
+  const ep=getEndpoint(); if(!ep) throw new Error('no image endpoint set (Settings)');
+  const refs=Array.isArray(refImages)?refImages.filter(Boolean):(refImages?[refImages]:[]);
+  const res=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,refImages:refs,refImage:refs[0]||null,quality:'high',size:'2048x1536'})});
+  const data=await res.json().catch(()=>({error:'bad response from endpoint'}));
+  if(!res.ok||data.error) throw new Error(data.error||('endpoint '+res.status));
+  return data.b64;
+}
+async function aiScene(prompt){ return loadImg('data:image/png;base64,'+await callImage(prompt)); }
+function scenePrompt(i,extra){
+  const desc=SCENE_DESCS[i%SCENE_DESCS.length];
+  return `Ultra-photorealistic luxury mattress showroom photograph, editorial retail catalog quality, dramatic warm lighting, rich depth of field. ${desc}. ${extra?extra+'. ':''}The main mattress sits on the RIGHT side of the frame; keep the LEFT third simpler for a graphic overlay. Wide-angle, crisp focus, professional product photography. Avoid any readable text, headlines, prices, watermarks, or brand logos anywhere in the image.`;
+}
+async function aiFullPoster(set,extra,i){
+  const desc=SCENE_DESCS[i%SCENE_DESCS.length];
+  const subFull=set.subline+(set.accent?(' '+set.accent):'');
+  const prompt=`Recreate this Google Business Profile retail-sale graphic in the EXACT same layout, color scheme (deep navy, gold-yellow, white, blue), fonts, and design structure as the reference image. Keep identical: the large "SAVE UP TO 60-70% OFF RETAIL!" headline, the four circular yellow trust icons labelled OUTLET PRICES / QUALITY YOU TRUST / DELIVERY AVAILABLE / FINANCING AVAILABLE, the "COMPARE DEALS - CD MATTRESSES" logo bottom-left, the white "2 CONVENIENT LOCATIONS!" pill with "LAWRENCEVILLE, GA | MORROW, GA", and the yellow bottom-right corner with a shopping-cart icon and "SHOP MORE. SAVE MORE." Change ONLY: the top eyebrow banner to "${set.eyebrow}", the subline bar to "${subFull}", and the product to ${desc}${extra?(', '+extra):''}. Spell every word exactly right. Photorealistic mattress, sharp, professional, high detail.`;
+  return 'data:image/png;base64,'+await callImage(prompt, styleRefs);
+}
+
+/* ---------- GENERATE FLOW ---------- */
+let generated=[];
+function activeBrand(){ return brandKits[$('clientSel').value] || brandKits['compare-deals']; }
+
+async function buildHeadlineSets(count){
+  const mode=$('copyMode').value;
+  if(mode==='single'){ const e=$('eyebrowIn').value.trim(); const s=$('sublineIn').value.trim(); return Array.from({length:count},()=>({eyebrow:e,subline:s,accent:'',bar:'blue'})); }
+  if(mode==='ai'){ try{ return await aiHeadlines(count); }catch(err){ $('status').textContent='AI failed ('+err.message+') — using built-in headlines.'; } }
+  // rotate
+  const out=[]; for(let i=0;i<count;i++){const p=MATTRESS_PRESETS[i%MATTRESS_PRESETS.length];out.push({eyebrow:p.e,subline:p.s,accent:p.a,bar:p.bar});} return out;
+}
+
+async function generate(){
+  const mode=$('imgMode').value;
+  await document.fonts.ready;
+  const ctx=$('stage').getContext('2d');
+  const brand=activeBrand();
+  if(brand.logo){ try{ logoImg=await loadImg(brand.logo); }catch(e){ logoImg=null; } }
+
+  const files=Array.from($('photos').files||[]);
+  let count;
+  if(mode==='upload'){
+    if(!files.length){$('status').textContent='Add product photos first.';return;}
+    count=files.length;
+  } else {
+    if(!getEndpoint()){ $('status').textContent='Set your Image API endpoint in Settings first (deploy the creative-os-api folder to Vercel).'; return; }
+    if(mode==='airef' && !styleRefs.length){ $('status').textContent='No style reference loaded — add at least one in the AI panel.'; return; }
+    count=Math.min(50,Math.max(1,parseInt($('aiCount').value||4)));
+  }
+  const sets=await buildHeadlineSets(count);
+  const extra=$('aiExtra').value.trim();
+  generated=[]; $('previewGrid').innerHTML='';
+  $('status').className='status busy'; $('status').textContent='Generating '+count+' graphics…';
+
+  for(let i=0;i<count;i++){
+    let finalURL;
+    try{
+      if(mode==='upload'){
+        const img=await loadImg(await fileToURL(files[i]));
+        finalURL=renderTemplate(ctx,img,brand,sets[i]);
+      } else if(mode==='ai'){
+        $('status').className='status busy'; $('status').textContent=`Generating AI scene ${i+1} of ${count}… (a few seconds each)`;
+        const img=await aiScene(scenePrompt(i,extra));
+        finalURL=renderTemplate(ctx,img,brand,sets[i]);
+      } else { // airef — full poster recreated from the reference
+        $('status').className='status busy'; $('status').textContent=`Generating AI poster ${i+1} of ${count}… (10–20s each)`;
+        finalURL=await aiFullPoster(sets[i],extra,i);
+      }
+    }catch(e){ $('status').className='status'; $('status').textContent='Stopped at '+(i+1)+' — '+e.message; return; }
+    const fn='compare-deals-gbp-'+String(i+1).padStart(3,'0')+'.png';
+    generated.push({fn,dataURL:finalURL});
+    addPreview(fn,finalURL);
+    await new Promise(r=>setTimeout(r,0));
+  }
+  $('status').className='status'; $('status').textContent='Done — '+generated.length+' graphics ready. Click a card to download, or Download All.';
+}
+function addPreview(fn,url){
+  const d=document.createElement('div');d.className='pcard';
+  d.innerHTML='<img src="'+url+'" alt="'+fn+'"><div class="pf"><span>'+fn+'</span><button>Download</button></div>';
+  d.querySelector('button').onclick=()=>download(url,fn); d.querySelector('img').onclick=()=>download(url,fn);
+  $('previewGrid').appendChild(d);
+}
+function download(url,fn){const a=document.createElement('a');a.href=url;a.download=fn;document.body.appendChild(a);a.click();a.remove();}
+function downloadAll(){ if(!generated.length){$('status').textContent='Generate first.';return;} generated.forEach((g,i)=>setTimeout(()=>download(g.dataURL,g.fn),i*350)); }
+
+/* ---------- OPENAI (browser-side, key from localStorage) ---------- */
+function getKey(){return LS.get('vs_openai_key','');}
+async function openai(messages){
+  const key=getKey(); if(!key) throw new Error('no API key saved');
+  const res=await fetch('https://api.openai.com/v1/chat/completions',{
+    method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body:JSON.stringify({model:LS.get('vs_openai_model','gpt-4o-mini'),messages,temperature:0.9})
+  });
+  if(!res.ok){const t=await res.text();throw new Error('OpenAI '+res.status+' '+t.slice(0,120));}
+  const data=await res.json(); return data.choices[0].message.content;
+}
+async function aiHeadlines(count){
+  const brand=activeBrand();
+  const prompt=`Write ${count} short retail-sale headline sets for ${brand.name}, a discount mattress outlet. Return ONE per line as: EYEBROW || SUBLINE || ACCENT. EYEBROW is an all-caps hook ending in "!" (e.g. "MEMORY FOAM MEGA SALE!"). SUBLINE is a short all-caps benefit (e.g. "COOLING GEL TECH."). ACCENT is a 1-3 word all-caps kicker (e.g. "ALL SIZES.") or blank. No numbering, no quotes.`;
+  const txt=await openai([{role:'system',content:'You are a punchy retail copywriter. Output only the lines requested.'},{role:'user',content:prompt}]);
+  const rows=txt.split('\n').map(l=>l.trim()).filter(Boolean).slice(0,count);
+  const sets=rows.map(l=>{const[e,s,a]=l.split('||').map(x=>(x||'').trim());return{eyebrow:e||'MATTRESS SALE!',subline:s||'ALL SIZES.',accent:a||'',bar:'blue'};});
+  while(sets.length<count){sets.push(sets[sets.length%Math.max(1,sets.length)]||{eyebrow:'MATTRESS SALE!',subline:'ALL SIZES.',accent:'',bar:'blue'});}
+  return sets;
+}
+
+/* ---------- NAV ---------- */
+document.querySelectorAll('.navbtn[data-screen]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  $('screen-'+b.dataset.screen).classList.add('on');
+});
+
+/* ---------- INIT UI ---------- */
+function fillClients(){
+  $('clientSel').innerHTML=Object.entries(brandKits).map(([k,v])=>`<option value="${k}">${v.name}</option>`).join('');
+}
+function fillTemplates(){ $('templateSel').innerHTML='<option value="cd-mattress">Compare Deals — Mattress Retail Sale</option>'; }
+fillClients(); fillTemplates();
+
+$('copyMode').onchange=()=>{ $('singleWrap').style.display=$('copyMode').value==='single'?'block':'none'; };
+$('imgMode').onchange=()=>{ const m=$('imgMode').value; $('uploadWrap').style.display=(m==='upload')?'block':'none'; $('aiWrap').style.display=(m==='upload')?'none':'block'; $('styleRefWrap').style.display=(m==='airef')?'block':'none'; };
+// style references: default embedded + up to 5 total, add/remove
+function renderStyleThumbs(){
+  const c=$('styleRefThumbs'); if(!c) return;
+  c.innerHTML = styleRefs.length
+    ? styleRefs.map((u,i)=>`<div class="refthumb"><img src="${u}" alt="ref ${i+1}">${i===0?'<span class="reftag">PRIMARY</span>':''}<button data-i="${i}" title="Remove">×</button></div>`).join('')
+      + `<span class="refcount">${styleRefs.length}/5 reference${styleRefs.length>1?'s':''} — the 1st (blue) is the primary layout GPT Image 2 copies; the rest guide logo/product.</span>`
+    : '<span class="hint" style="margin:0">No references — add at least one.</span>';
+  c.querySelectorAll('button[data-i]').forEach(b=>b.onclick=()=>{ styleRefs.splice(parseInt(b.dataset.i,10),1); renderStyleThumbs(); });
+}
+renderStyleThumbs();
+$('styleRefInput').onchange=async()=>{
+  const fls=Array.from($('styleRefInput').files||[]);
+  for(const f of fls){ if(styleRefs.length>=5) break; let url=await fileToURL(f); url=await resizeDataURL(url,1024); styleRefs.push(url); }
+  $('styleRefInput').value=''; renderStyleThumbs();
+};
+$('imgMode').onchange(); // set initial visibility (default = reference mode)
+$('genBtn').onclick=generate;
+$('dlAllBtn').onclick=downloadAll;
+$('clearBtn').onclick=()=>{generated=[];$('previewGrid').innerHTML='';$('status').className='status';$('status').textContent='Cleared.';};
+
+/* Brand kit form */
+function loadKitForm(){
+  const b=brandKits['compare-deals'];
+  $('bkOffer').value=b.offer;$('bkLocations').value=b.locations;$('bkCta1').value=b.cta1;$('bkCta2').value=b.cta2;
+  $('bkNavy').value=b.navy;$('bkYellow').value=b.yellow;$('bkBlue').value=b.blue;$('bkLogo').src=b.logo||'';
+}
+loadKitForm();
+$('bkSave').onclick=()=>{
+  const b=brandKits['compare-deals'];
+  b.offer=$('bkOffer').value;b.locations=$('bkLocations').value;b.cta1=$('bkCta1').value;b.cta2=$('bkCta2').value;
+  b.navy=$('bkNavy').value;b.yellow=$('bkYellow').value;b.blue=$('bkBlue').value;
+  saveKits(); fillClients(); $('bkSave').textContent='Saved ✓'; setTimeout(()=>$('bkSave').textContent='Save Brand Kit',1200);
+};
+
+/* Settings */
+$('apiKey').value=getKey();
+$('apiModel').value=LS.get('vs_openai_model','gpt-4o-mini');
+$('imgEndpoint').value=LS.get('vs_image_endpoint','');
+$('scriptEndpoint').value=LS.get('vs_script_endpoint','');
+if(getKey()){$('keyStatus').textContent='Key saved in this browser. AI copy features are ready.';}
+$('saveKey').onclick=()=>{LS.set('vs_openai_key',$('apiKey').value.trim());LS.set('vs_openai_model',$('apiModel').value);LS.set('vs_image_endpoint',$('imgEndpoint').value.trim());LS.set('vs_script_endpoint',$('scriptEndpoint').value.trim());$('keyStatus').textContent='Saved. Keys live only in this browser; endpoints saved too.';};
+$('testKey').onclick=async()=>{
+  $('keyStatus').textContent='Testing…';$('aiOut').style.display='none';
+  try{const r=await openai([{role:'user',content:'Reply with exactly: Viral Spark Creative OS connected.'}]);$('keyStatus').textContent='✓ Connected.';$('aiOut').style.display='block';$('aiOut').textContent=r;}
+  catch(e){$('keyStatus').textContent='✗ '+e.message;}
+};
+
+/* ---------- SCRIPT GENERATOR (Claude via Vercel proxy) ---------- */
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function inline(s){ // bold + inline code, on already-escaped text
+  return s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/`([^`]+?)`/g,'<code>$1</code>');
+}
+function mdToHtml(md){
+  const lines=md.replace(/\r/g,'').split('\n'); let html='',i=0;
+  while(i<lines.length){
+    let ln=lines[i];
+    if(/^\s*\|.*\|\s*$/.test(ln)){ // table block
+      const rows=[]; while(i<lines.length && /^\s*\|.*\|\s*$/.test(lines[i])){ rows.push(lines[i]); i++; }
+      const cells=r=>r.trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(c=>c.trim());
+      let body=''; rows.forEach((r,ri)=>{
+        if(ri===1 && /^[\s:|-]+$/.test(r)) return; // separator
+        const tag=ri===0?'th':'td';
+        body+='<tr>'+cells(r).map(c=>'<'+tag+'>'+inline(esc(c))+'</'+tag+'>').join('')+'</tr>';
+      });
+      html+='<table>'+body+'</table>'; continue;
+    }
+    if(/^###\s+/.test(ln)){ html+='<h3>'+inline(esc(ln.replace(/^###\s+/,'')))+'</h3>'; i++; continue; }
+    if(/^##\s+/.test(ln)){ html+='<h3>'+inline(esc(ln.replace(/^##\s+/,'')))+'</h3>'; i++; continue; }
+    if(/^\s*---\s*$/.test(ln)){ html+='<hr>'; i++; continue; }
+    if(ln.trim()===''){ i++; continue; }
+    html+='<p>'+inline(esc(ln))+'</p>'; i++;
+  }
+  return html;
+}
+function scBrandInfo(key){
+  const b=brandKits[key]; if(!b) return '';
+  const bits=[b.name];
+  if(b.offer) bits.push('Offer: '+b.offer);
+  if(b.locations) bits.push('Locations: '+b.locations);
+  if(b.cta1||b.cta2) bits.push('Contact: '+[b.cta1,b.cta2].filter(Boolean).join(' / '));
+  return bits.join(' · ');
+}
+let lastScriptMd='';
+async function generateScripts(){
+  const ep=LS.get('vs_script_endpoint','');
+  if(!ep){ $('scStatus').className='status'; $('scStatus').textContent='Set the Script API endpoint in Settings first.'; return; }
+  const topic=$('scTopic').value.trim();
+  if(!topic){ $('scStatus').textContent='Add a topic / angle first.'; return; }
+  const key=$('scClient').value;
+  const payload={
+    style: $('scStyle').value,
+    client: brandKits[key]?brandKits[key].name:key,
+    brandInfo: scBrandInfo(key),
+    topic,
+    length: $('scLength').value,
+    goal: $('scGoal').value,
+    count: parseInt($('scCount').value,10)||3,
+    extra: $('scExtra').value.trim()
+  };
+  $('scGenBtn').disabled=true; $('scStatus').className='status'; $('scStatus').textContent='Writing scripts through the Viral Communication Skill… (Claude, ~20–60s)'; $('scOut').innerHTML='';
+  try{
+    const res=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await res.json();
+    if(!res.ok){ throw new Error((data.error||('HTTP '+res.status))+(data.detail?(' — '+data.detail):'')); }
+    lastScriptMd=data.markdown||'';
+    $('scOut').innerHTML=mdToHtml(lastScriptMd);
+    $('scStatus').textContent='✓ Done — '+payload.count+' script'+(payload.count>1?'s':'')+' for '+payload.client+'.';
+  }catch(e){ $('scStatus').textContent='✗ '+e.message; }
+  finally{ $('scGenBtn').disabled=false; }
+}
+function fillScClients(){ $('scClient').innerHTML=Object.entries(brandKits).map(([k,v])=>`<option value="${k}">${v.name}</option>`).join(''); }
+fillScClients();
+$('scGenBtn').onclick=generateScripts;
+$('scClearBtn').onclick=()=>{ $('scOut').innerHTML=''; lastScriptMd=''; $('scStatus').className='status'; $('scStatus').textContent='Cleared.'; };
+$('scCopyBtn').onclick=()=>{ if(!lastScriptMd){$('scStatus').textContent='Generate first.';return;} navigator.clipboard.writeText(lastScriptMd).then(()=>{ $('scCopyBtn').textContent='Copied ✓'; setTimeout(()=>$('scCopyBtn').textContent='Copy All',1200); }); };
+$('scDlBtn').onclick=()=>{
+  if(!lastScriptMd){$('scStatus').textContent='Generate first.';return;}
+  const client=($('scClient').selectedOptions[0]||{}).text||'client';
+  const slug=(s)=>s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+  const fn='viral-scripts_'+slug(client)+'_'+$('scStyle').value+'.md';
+  const blob=new Blob([lastScriptMd],{type:'text/markdown'});
+  const url=URL.createObjectURL(blob); download(url,fn); setTimeout(()=>URL.revokeObjectURL(url),4000);
+  $('scDlBtn').textContent='Saved ✓'; setTimeout(()=>$('scDlBtn').textContent='Download .md',1200);
+};
+</script>
+</body>
+</html>

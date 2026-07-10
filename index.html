@@ -391,6 +391,8 @@ let brandKits = LS.get('vs_brandkits', { 'compare-deals': DEFAULT_CD });
 if(window.COMPARE_DEALS_LOGO) brandKits['compare-deals'].logo = window.COMPARE_DEALS_LOGO; // always use the embedded real logo
 if(!brandKits['ruby-vet']) brandKits['ruby-vet'] = DEFAULT_RUBY; // ensure Ruby Vet exists even on saved kits
 function saveKits(){ LS.set('vs_brandkits', brandKits); }
+// Client dropdown order — Ruby Vet is the default (first) option
+function kitEntries(){ const p='ruby-vet'; return [p, ...Object.keys(brandKits).filter(k=>k!==p)].filter(k=>brandKits[k]).map(k=>[k, brandKits[k]]); }
 
 /* ---------- BUILT-IN HEADLINE SETS (no AI needed) ---------- */
 const MATTRESS_PRESETS = [
@@ -644,7 +646,7 @@ document.querySelectorAll('.navbtn[data-screen]').forEach(b=>b.onclick=()=>{
 
 /* ---------- INIT UI ---------- */
 function fillClients(){
-  $('clientSel').innerHTML=Object.entries(brandKits).map(([k,v])=>`<option value="${k}">${v.name}</option>`).join('');
+  $('clientSel').innerHTML=kitEntries().map(([k,v])=>`<option value="${k}">${v.name}</option>`).join('');
 }
 function fillTemplates(){ $('templateSel').innerHTML='<option value="cd-mattress">Compare Deals — Mattress Retail Sale</option>'; }
 fillClients(); fillTemplates();
@@ -761,7 +763,7 @@ async function generateScripts(){
   }catch(e){ $('scStatus').textContent='✗ '+e.message; }
   finally{ $('scGenBtn').disabled=false; }
 }
-function fillScClients(){ $('scClient').innerHTML=Object.entries(brandKits).map(([k,v])=>`<option value="${k}">${v.name}</option>`).join(''); }
+function fillScClients(){ $('scClient').innerHTML=kitEntries().map(([k,v])=>`<option value="${k}">${v.name}</option>`).join(''); }
 fillScClients();
 $('scGenBtn').onclick=generateScripts;
 $('scClearBtn').onclick=()=>{ $('scOut').innerHTML=''; lastScriptMd=''; $('scStatus').className='status'; $('scStatus').textContent='Cleared.'; };

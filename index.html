@@ -381,8 +381,15 @@ const DEFAULT_CD = {
   cta1:'SHOP MORE.', cta2:'SAVE MORE.',
   logo: window.COMPARE_DEALS_LOGO || ''
 };
+const DEFAULT_RUBY = {
+  name:'Ruby Vet',
+  navy:'#0A2547', yellow:'#FDC21C', blue:'#1C63C6', white:'#FFFFFF',
+  offer:'', locations:'', cta1:'', cta2:'',
+  logo:''
+};
 let brandKits = LS.get('vs_brandkits', { 'compare-deals': DEFAULT_CD });
 if(window.COMPARE_DEALS_LOGO) brandKits['compare-deals'].logo = window.COMPARE_DEALS_LOGO; // always use the embedded real logo
+if(!brandKits['ruby-vet']) brandKits['ruby-vet'] = DEFAULT_RUBY; // ensure Ruby Vet exists even on saved kits
 function saveKits(){ LS.set('vs_brandkits', brandKits); }
 
 /* ---------- BUILT-IN HEADLINE SETS (no AI needed) ---------- */

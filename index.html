@@ -71,6 +71,9 @@ body{font-family:var(--f-body);background:var(--vs-bg);color:var(--vs-text);-web
 .carouseltoggle span{color:var(--vs-text-3,#8a93a6);font-size:12px}
 .batchrow{padding:6px 0 10px;margin-bottom:6px;border-bottom:1px solid var(--vs-line,rgba(120,130,150,.16))}
 .batchrow:last-child{border-bottom:0}
+.customrow{display:flex;gap:8px;align-items:center}
+.customrow input{flex:1}
+.customrow span{color:var(--vs-text-3,#8a93a6);font-weight:600}
 .head{margin-bottom:24px}
 .eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--vs-blue);margin-bottom:8px}
 h1.title{font-family:var(--f-display);font-weight:700;font-size:32px;letter-spacing:-.025em;color:var(--vs-navy)}
@@ -190,11 +193,16 @@ canvas#stage{display:none}
 
             <label class="f">Format</label>
             <select id="fmtSel">
-              <option value="single">Single image — 1024×768</option>
               <option value="carousel">📱 Instagram Carousel — 1080×1350</option>
               <option value="cover">🖼️ Instagram Cover — 1080×1440</option>
-              <option value="gbp">📍 Google Business Profile — 1200×900 (4:3)</option>
+              <option value="gbp">📍 Google Business Profile — 1200×900</option>
+              <option value="custom">📐 Pick my resolution…</option>
             </select>
+            <div id="customWrap" style="display:none">
+              <label class="f">Custom size (width × height, px)</label>
+              <div class="customrow"><input id="customW" type="number" min="200" max="4000" value="1080"><span>×</span><input id="customH" type="number" min="200" max="4000" value="1920"></div>
+              <div class="hint">Any size — party flyers, banners, whatever you need. I generate at the closest supported ratio, then resize to your exact pixels.</div>
+            </div>
             <div id="carouselWrap" style="display:none">
               <label class="f">Pages per carousel</label>
               <input id="carouselPages" type="number" min="2" max="6" value="3">
@@ -582,12 +590,17 @@ let styleRefs = window.RUBY_VET_REF ? [window.RUBY_VET_REF] : (window.CD_STYLE_R
 let selectedStyle = null; // the chosen brand style {label,bg,text,accent,url} from the client's styleLib
 // Output formats — gen = a valid gpt-image-2 size (edges ×16) at the target aspect; w/h = exact final size we resize to
 const FORMATS = {
-  single:  {gen:'1024x768',  w:1024, h:768,  carousel:false, fmt:'landscape 4:3 social graphic'},
   carousel:{gen:'1024x1280', w:1080, h:1350, carousel:true,  fmt:'portrait 4:5 vertical Instagram carousel page'},
   cover:   {gen:'1056x1408', w:1080, h:1440, carousel:false, fmt:'portrait 3:4 vertical Instagram profile cover'},
   gbp:     {gen:'1024x768',  w:1200, h:900,  carousel:false, fmt:'horizontal landscape 4:3 Google Business Profile post'}
 };
-function curFormat(){ const el=$('fmtSel'); return (el && FORMATS[el.value]) || FORMATS.single; }
+// closest valid gpt-image-2 gen size (edges ×16, ratio clamped to 3:1) for any target W×H
+function customGen(w,h){ let a=w/h; if(a>3)a=3; if(a<1/3)a=1/3; let gw,gh; if(a>=1){gw=1024;gh=Math.round(1024/a);}else{gh=1024;gw=Math.round(1024*a);} const r=x=>Math.max(256,Math.round(x/16)*16); gw=r(gw); gh=r(gh); while(gw/gh>3) gh+=16; while(gh/gw>3) gw+=16; return gw+'x'+gh; }
+function curFormat(){
+  const el=$('fmtSel'); const v=el?el.value:'carousel';
+  if(v==='custom'){ const w=Math.min(4000,Math.max(200,parseInt(($('customW')||{}).value,10)||1080)); const h=Math.min(4000,Math.max(200,parseInt(($('customH')||{}).value,10)||1080)); return {gen:customGen(w,h),w:w,h:h,carousel:false,fmt:'custom '+w+'×'+h+' pixel graphic — compose the layout to fit this exact rectangle'}; }
+  return FORMATS[v]||FORMATS.carousel;
+}
 async function resizeDataURL(url,maxW){ const img=await loadImg(url); if(img.width<=maxW) return url; const c=document.createElement('canvas'); const s=maxW/img.width; c.width=maxW; c.height=Math.round(img.height*s); c.getContext('2d').drawImage(img,0,0,c.width,c.height); return c.toDataURL('image/jpeg',0.85); }
 async function callImage(prompt, refImages, size){
   const ep=getEndpoint(); if(!ep) throw new Error('no image endpoint set (Settings)');
@@ -834,6 +847,7 @@ $('imgMode').onchange(); // set initial visibility (default = reference mode)
 $('fmtSel').onchange=()=>{
   const car=curFormat().carousel;
   $('carouselWrap').style.display=car?'block':'none';
+  if($('customWrap'))$('customWrap').style.display=($('fmtSel').value==='custom')?'block':'none';
   if($('intentWrap'))$('intentWrap').style.display=car?'none':'block';
   fillStyles();
   if($('styleRefWrap'))$('styleRefWrap').style.display=car?'none':'block';

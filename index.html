@@ -437,6 +437,7 @@ FORMAT: Instagram carousel, portrait 4:5 ratio, final size 1080x1350.`,
 let brandKits = LS.get('vs_brandkits', { 'compare-deals': DEFAULT_CD });
 if(window.COMPARE_DEALS_LOGO) brandKits['compare-deals'].logo = window.COMPARE_DEALS_LOGO; // always use the embedded real logo
 if(!brandKits['ruby-vet']) brandKits['ruby-vet'] = DEFAULT_RUBY; // ensure Ruby Vet exists even on saved kits
+else { const rv=brandKits['ruby-vet']; rv.colors=DEFAULT_RUBY.colors; rv.guidelines=DEFAULT_RUBY.guidelines; rv.styleLib=DEFAULT_RUBY.styleLib; rv.gbpLib=DEFAULT_RUBY.gbpLib; } // always refresh code-defined brand assets from the latest build
 function saveKits(){ LS.set('vs_brandkits', brandKits); }
 // Client dropdown order — Ruby Vet is the default (first) option
 function kitEntries(){ const p='ruby-vet'; const hide=['compare-deals']; /* hidden for the Ruby Vet demo — remove from this array to show it again */ return [p, ...Object.keys(brandKits).filter(k=>k!==p)].filter(k=>brandKits[k] && !hide.includes(k)).map(k=>[k, brandKits[k]]); }

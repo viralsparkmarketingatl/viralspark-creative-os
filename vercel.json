@@ -8,6 +8,9 @@
     },
     "api/smart-image.js": {
       "maxDuration": 300
+    },
+    "api/carousel.js": {
+      "maxDuration": 300
     }
   }
 }

@@ -103,6 +103,16 @@ textarea{min-height:64px;resize:vertical}
 .pcard .pf{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px}
 .pcard .pf span{font-family:var(--f-mono);font-size:11px;color:var(--vs-text-2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .pcard .pf button{border:none;background:var(--vs-blue);color:#fff;font-family:var(--f-display);font-weight:700;font-size:11px;padding:7px 11px;border-radius:8px;cursor:pointer}
+.slgroup{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--vs-text-2);margin-bottom:10px}
+.slgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.slcard{border:1px solid var(--vs-line);border-radius:12px;overflow:hidden;background:#fff}
+.slcard img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;background:#f2f2f2}
+.slnoimg{width:100%;aspect-ratio:4/5;display:flex;align-items:center;justify-content:center;background:#f2f2f2;color:#aaa;font-family:var(--f-mono);font-size:11px}
+.slmeta{padding:9px 10px}
+.sllabel{font-family:var(--f-display);font-weight:700;font-size:12px;line-height:1.25;margin-bottom:6px}
+.slsw{display:flex;gap:5px;margin-bottom:5px}
+.slsw .sw{width:15px;height:15px;border-radius:4px;border:1px solid rgba(0,0,0,.12);display:inline-block}
+.slhex{font-family:var(--f-mono);font-size:9px;color:var(--vs-text-2);word-break:break-all}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .chip{font-family:var(--f-mono);font-size:11px;background:#EEF1F5;border:1px solid var(--vs-line);border-radius:8px;padding:6px 10px;color:var(--vs-navy)}
 .kv{display:grid;grid-template-columns:120px 1fr;gap:8px 14px;font-size:13px;margin-top:4px}
@@ -133,6 +143,7 @@ canvas#stage{display:none}
     <button class="navbtn" data-screen="scripts"><span class="ic">✍</span> Script Generator</button>
     <button class="navbtn soon" disabled><span class="ic">◈</span> Ad Generator <span class="tag">Soon</span></button>
     <div class="navlabel">Library</div>
+    <button class="navbtn" data-screen="history"><span class="ic">🕘</span> History</button>
     <button class="navbtn" data-screen="brandkits"><span class="ic">◉</span> Brand Kits</button>
     <button class="navbtn" data-screen="templates"><span class="ic">▤</span> Templates</button>
     <button class="navbtn soon" disabled><span class="ic">✎</span> Prompt Library <span class="tag">Soon</span></button>
@@ -207,10 +218,12 @@ canvas#stage{display:none}
               <input id="styleRefInput" type="file" accept="image/*" multiple>
               <div class="hint">A default poster is loaded to copy the style from. <b>Add more</b> and GPT Image 2 uses them together — e.g. the reference poster + a clean logo + the exact subject you want. Click × to remove one.</div>
             </div>
-            <label class="f">How many posts to generate</label>
-            <input id="aiCount" type="number" min="1" max="50" value="1">
-            <label class="f">Scene direction (optional — added to every prompt)</label>
-            <textarea id="aiExtra" placeholder="e.g. warm, friendly photo; on-brand colors; the subject to feature"></textarea>
+            <div id="aiCountWrap">
+              <label class="f">How many posts to generate</label>
+              <input id="aiCount" type="number" min="1" max="100" value="1">
+            </div>
+            <label class="f">Extra direction (optional — applied to every post in this batch)</label>
+            <textarea id="aiExtra" placeholder="e.g. keep the vibe super friendly and playful; warm lighting; feature a happy dog"></textarea>
             <div class="hint"><b>Reference mode</b> sends your poster to the AI so it copies the layout exactly and only changes the headline + featured subject. <b>Hybrid mode</b> generates just the photo and stamps a code frame. ~$0.02–0.19 per image on your OpenAI account. Set the endpoint in Settings first.</div>
           </div>
 
@@ -329,6 +342,11 @@ canvas#stage{display:none}
         <div class="actions"><button class="btn primary" style="width:200px" id="bkSave">Save Brand Kit</button></div>
       </div>
       <div class="card">
+        <h3 style="font-family:var(--f-display);font-weight:700;font-size:16px;margin-bottom:6px">Style Reference Library</h3>
+        <p class="subt" style="margin:0 0 14px">These are the exact looks I match. Each style pairs a <b>reference image</b> with its <b>precise hex codes</b> — when you pick a style in the generator, I send <b>both</b> to the AI so the output nails the visual style <em>and</em> the colors. This is what lives inside the brand kit.</p>
+        <div id="bkStyleLib" class="stylelib"></div>
+      </div>
+      <div class="card">
         <h3 style="font-family:var(--f-display);font-weight:700;font-size:16px;margin-bottom:10px">Coming online next</h3>
         <div class="tgrid">
           <div class="tcard soon"><span class="badge">Queued</span><h3>Add a client</h3><p>Each new client gets its own logo, colors, and posts.</p></div>
@@ -352,6 +370,21 @@ canvas#stage{display:none}
         <div class="tcard soon"><span class="badge">Planned</span><h3>Square (1080×1080)</h3><p>Instagram / Facebook feed size.</p></div>
         <div class="tcard soon"><span class="badge">Planned</span><h3>Story (1080×1920)</h3><p>Vertical Reels / Stories size.</p></div>
       </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="screen" id="screen-history">
+      <div class="head">
+        <div class="eyebrow">Never Lose Work</div>
+        <h1 class="title">History</h1>
+        <p class="subt">Every graphic you generate is auto-saved here — right on this device. Close the app, get a phone call, refresh the page: it's all still here. Nothing is uploaded anywhere; it lives in this browser until you clear it. Re-download anything, anytime.</p>
+      </div>
+      <div class="actions" style="margin-bottom:18px">
+        <button class="btn dark full" id="histDlAll">Download All</button>
+        <button class="btn ghost full" id="histClear">Clear History</button>
+      </div>
+      <div class="status" id="histStatus">Loading…</div>
+      <div class="previewGrid" id="historyGrid"></div>
     </section>
 
     <!-- SETTINGS -->
@@ -398,6 +431,25 @@ const LS = {
 // Default API endpoints so a fresh device works with zero setup (only if not already set)
 if(!LS.get('vs_image_endpoint','')) LS.set('vs_image_endpoint','https://creative-os-api.vercel.app/api/generate-image');
 if(!LS.get('vs_script_endpoint','')) LS.set('vs_script_endpoint','https://creative-os-api.vercel.app/api/generate-script');
+
+/* ---------- HISTORY (auto-save every generated image to the browser's own database) ---------- */
+/* IndexedDB survives refresh / closing the tab / phone calls — nothing is lost until the user clears it. */
+const HDB={
+  db:null,
+  open(){ return new Promise((res,rej)=>{ if(HDB.db)return res(HDB.db);
+    if(!window.indexedDB){ return rej(new Error('no indexeddb')); }
+    const r=indexedDB.open('vs_creative_os',1);
+    r.onupgradeneeded=e=>{ const db=e.target.result; if(!db.objectStoreNames.contains('graphics')) db.createObjectStore('graphics',{keyPath:'id',autoIncrement:true}); };
+    r.onsuccess=e=>{ HDB.db=e.target.result; res(HDB.db); };
+    r.onerror=()=>rej(r.error||new Error('idb open failed'));
+  }); },
+  async add(rec){ try{ const db=await HDB.open(); await new Promise((res,rej)=>{ const tx=db.transaction('graphics','readwrite'); tx.objectStore('graphics').add(rec); tx.oncomplete=res; tx.onerror=()=>rej(tx.error); }); await HDB.prune(); }catch(e){ /* history is best-effort; never block a generation */ } },
+  async all(){ try{ const db=await HDB.open(); return await new Promise((res,rej)=>{ const tx=db.transaction('graphics','readonly'); const rq=tx.objectStore('graphics').getAll(); rq.onsuccess=()=>res(rq.result||[]); rq.onerror=()=>rej(rq.error); }); }catch(e){ return []; } },
+  async del(id){ try{ const db=await HDB.open(); await new Promise((res,rej)=>{ const tx=db.transaction('graphics','readwrite'); tx.objectStore('graphics').delete(id); tx.oncomplete=res; tx.onerror=()=>rej(tx.error); }); }catch(e){} },
+  async clear(){ try{ const db=await HDB.open(); await new Promise((res,rej)=>{ const tx=db.transaction('graphics','readwrite'); tx.objectStore('graphics').clear(); tx.oncomplete=res; tx.onerror=()=>rej(tx.error); }); }catch(e){} },
+  // keep the newest ~600 images so the database can't grow without bound
+  async prune(){ try{ const db=await HDB.open(); const ids=await new Promise((res,rej)=>{ const tx=db.transaction('graphics','readonly'); const rq=tx.objectStore('graphics').getAllKeys(); rq.onsuccess=()=>res(rq.result||[]); rq.onerror=()=>rej(rq.error); }); if(ids.length>600){ const kill=ids.slice(0,ids.length-600); const tx=db.transaction('graphics','readwrite'); const st=tx.objectStore('graphics'); kill.forEach(k=>st.delete(k)); } }catch(e){} }
+};
 
 /* ---------- BRAND KITS ---------- */
 const DEFAULT_CD = {
@@ -639,6 +691,7 @@ async function runCarousel(){
     return { text:t.value.trim(), style:(idx>=0&&lib[idx])?lib[idx]:selectedStyle };
   }).filter(it=>it.text);
   if(!items.length){ $('status').className='status'; $('status').textContent='Add at least one — a blog URL, or a topic + directions.'; return; }
+  const extra=$('aiExtra')?$('aiExtra').value.trim():'';
   generated=[]; $('previewGrid').innerHTML=''; if($('smartPromptOut'))$('smartPromptOut').style.display='none';
   const plans=[];
   try{
@@ -647,7 +700,7 @@ async function runCarousel(){
       const refs=refsWithLogo((it.style && it.style.url)?[it.style.url]:styleRefs.filter(Boolean));
       const url=(it.text.match(/https?:\/\/\S+/)||[''])[0];
       $('status').className='status busy'; $('status').textContent=noun+' '+(k+1)+' of '+items.length+(it.style?(' · '+it.style.label):'')+' — planning + generating…';
-      const r=await callCarousel({brief:it.text,blogUrl:url,pages,refImages:refs,brand:brandPayload(it.style),format:fmt.fmt,quality:'high',size:fmt.gen});
+      const r=await callCarousel({brief:it.text+(extra?('\n\nApply to ALL posts in this batch: '+extra):''),blogUrl:url,pages,refImages:refs,brand:brandPayload(it.style),format:fmt.fmt,quality:'high',size:fmt.gen});
       const list=(r.pages||[]).slice().sort((a,b)=>(a.page||0)-(b.page||0));
       for(let idx=0;idx<list.length;idx++){
         const p=list[idx];
@@ -754,9 +807,33 @@ function addPreview(fn,url){
   d.innerHTML='<img src="'+url+'" alt="'+fn+'"><div class="pf"><span>'+fn+'</span><button>Download</button></div>';
   d.querySelector('button').onclick=()=>download(url,fn); d.querySelector('img').onclick=()=>download(url,fn);
   $('previewGrid').appendChild(d);
+  // auto-save to History so it survives a refresh / closed tab / interruption
+  let client=''; try{ client=activeBrand().name||''; }catch(e){}
+  HDB.add({ts:Date.now(),fn:fn,client:client,dataURL:url});
 }
 function download(url,fn){const a=document.createElement('a');a.href=url;a.download=fn;document.body.appendChild(a);a.click();a.remove();}
 function downloadAll(){ if(!generated.length){$('status').textContent='Generate first.';return;} generated.forEach((g,i)=>setTimeout(()=>download(g.dataURL,g.fn),i*350)); }
+
+/* ---------- HISTORY SCREEN ---------- */
+let histItems=[];
+async function loadHistory(){
+  const grid=$('historyGrid'); const st=$('histStatus'); if(!grid) return;
+  st.className='status busy'; st.textContent='Loading…';
+  histItems=(await HDB.all()).slice().reverse(); // newest first
+  grid.innerHTML='';
+  if(!histItems.length){ st.className='status'; st.textContent='No saved graphics yet. Anything you generate shows up here automatically.'; return; }
+  st.className='status'; st.textContent=histItems.length+' saved graphic'+(histItems.length===1?'':'s')+' — auto-saved on this device.';
+  histItems.forEach(it=>{
+    const d=document.createElement('div');d.className='pcard';
+    const meta=(it.client?it.client+' · ':'')+(it.fn||'graphic.png');
+    d.innerHTML='<img src="'+it.dataURL+'" alt="'+meta+'"><div class="pf"><span>'+meta+'</span><button>Download</button></div>';
+    d.querySelector('button').onclick=()=>download(it.dataURL,it.fn||'graphic.png');
+    d.querySelector('img').onclick=()=>download(it.dataURL,it.fn||'graphic.png');
+    grid.appendChild(d);
+  });
+}
+function historyDownloadAll(){ if(!histItems.length){return;} histItems.forEach((g,i)=>setTimeout(()=>download(g.dataURL,g.fn||('graphic-'+(i+1)+'.png')),i*350)); }
+async function historyClear(){ if(!histItems.length){return;} if(!confirm('Clear all '+histItems.length+' saved graphics? This can’t be undone — download anything you want to keep first.'))return; await HDB.clear(); loadHistory(); }
 
 /* ---------- OPENAI (browser-side, key from localStorage) ---------- */
 function getKey(){return LS.get('vs_openai_key','');}
@@ -785,6 +862,7 @@ document.querySelectorAll('.navbtn[data-screen]').forEach(b=>b.onclick=()=>{
   b.classList.add('active');
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
   $('screen-'+b.dataset.screen).classList.add('on');
+  if(b.dataset.screen==='history') loadHistory();
 });
 
 /* ---------- INIT UI ---------- */
@@ -835,6 +913,7 @@ $('fmtSel').onchange=()=>{
   if($('pagesWrap'))$('pagesWrap').style.display=multipage?'block':'none';
   if($('customWrap'))$('customWrap').style.display=($('fmtSel').value==='custom')?'block':'none';
   if($('intentWrap'))$('intentWrap').style.display=bat?'none':'block';
+  if($('aiCountWrap'))$('aiCountWrap').style.display=bat?'none':'block';
   fillStyles();
   if($('styleRefWrap'))$('styleRefWrap').style.display=bat?'none':'block';
   if(bat){ if($('styleSelWrap'))$('styleSelWrap').style.display='none'; renderBatchItems(); }
@@ -843,6 +922,8 @@ $('carouselCount').oninput=renderBatchItems; renderBatchItems();
 $('fmtSel').onchange();
 $('genBtn').onclick=generate;
 $('dlAllBtn').onclick=downloadAll;
+if($('histDlAll'))$('histDlAll').onclick=historyDownloadAll;
+if($('histClear'))$('histClear').onclick=historyClear;
 $('clearBtn').onclick=()=>{generated=[];$('previewGrid').innerHTML='';$('status').className='status';$('status').textContent='Cleared.';};
 
 /* Brand kit form */
@@ -851,6 +932,29 @@ function loadKitForm(){
   $('bkOffer').value=b.offer;$('bkLocations').value=b.locations;$('bkCta1').value=b.cta1;$('bkCta2').value=b.cta2;
   $('bkNavy').value=b.navy;$('bkYellow').value=b.yellow;$('bkBlue').value=b.blue;
   const lg=$('bkLogo'); if(b.logo){lg.src=b.logo;lg.style.display='';}else{lg.style.display='none';}
+  renderBrandStyleLib();
+}
+function swatch(hex){ return '<span class="sw" title="'+hex+'" style="background:'+hex+'"></span>'; }
+function renderBrandStyleLib(){
+  const wrap=$('bkStyleLib'); if(!wrap) return;
+  const b=brandKits['ruby-vet']||{};
+  const styles=b.styleLib||[]; const gbp=b.gbpLib||[];
+  let html='';
+  if(styles.length){
+    html+='<div class="slgroup">Instagram styles ('+styles.length+') — image + exact colors</div><div class="slgrid">';
+    html+=styles.map(s=>'<div class="slcard">'+(s.url?'<img src="'+s.url+'" alt="'+(s.label||'')+'">':'<div class="slnoimg">no image</div>')+
+      '<div class="slmeta"><div class="sllabel">'+(s.label||('Style '+(s.n||'')))+'</div>'+
+      '<div class="slsw">'+(s.bg?swatch(s.bg):'')+(s.text?swatch(s.text):'')+(s.accent?swatch(s.accent):'')+'</div>'+
+      '<div class="slhex">'+[s.bg,s.text,s.accent].filter(Boolean).join(' · ')+'</div></div></div>').join('');
+    html+='</div>';
+  }
+  if(gbp.length){
+    html+='<div class="slgroup" style="margin-top:16px">Google Business Profile references ('+gbp.length+')</div><div class="slgrid">';
+    html+=gbp.map(s=>'<div class="slcard">'+(s.url?'<img src="'+s.url+'" alt="'+(s.label||'')+'">':'<div class="slnoimg">no image</div>')+
+      '<div class="slmeta"><div class="sllabel">'+(s.label||('GBP '+(s.n||'')))+'</div></div></div>').join('');
+    html+='</div>';
+  }
+  wrap.innerHTML=html||'<div class="subt">No style references loaded for this brand yet.</div>';
 }
 loadKitForm();
 $('bkLogoInput').onchange=async()=>{

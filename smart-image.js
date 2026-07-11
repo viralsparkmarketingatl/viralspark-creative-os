@@ -9,7 +9,8 @@ const PROMPT_SYSTEM =
 - Keeps every brand element, logo, icon, and fixed label byte-for-byte identical to the reference.
 - Changes ONLY what the user's intent specifies (e.g. the headline text, the featured photo/subject, a seasonal theme), described precisely and concretely so the model renders it correctly.
 - Explicitly tells the model to spell every word exactly right and keep a polished, professional, on-brand look.
-Keep it tight and concrete (aim for 2-5 sentences). Output ONLY the final edit prompt text.`;
+If a BRAND KIT is provided (exact hex colors + rules/voice/layout do's and don'ts), the prompt MUST use those exact hex colors, obey the layout do's/don'ts, and match the brand's signature elements.
+Keep it tight and concrete (aim for 2-6 sentences). Output ONLY the final edit prompt text.`;
 
 function parseDataUrl(u) {
   const m = /^data:(image\/[a-zA-Z]+);base64,(.*)$/s.exec(u || '');
@@ -32,6 +33,14 @@ module.exports = async function handler(req, res) {
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const intent = (body.intent || '').trim();
+    const brand = body.brand || {};
+    const colorsLine = (brand.colors || []).map(c => c.name + ' ' + c.hex).join(', ');
+    const st = brand.style;
+    const styleLine = st ? ("EXACT COLOR SCHEME (use these EXACTLY): background " + st.bg + ", primary text " + st.text + ", accent " + st.accent + (st.label ? (" [" + st.label + "]") : "") + "\n") : '';
+    const brandBlock = (brand.name ? ('BRAND: ' + brand.name + '\n') : '')
+      + styleLine
+      + (colorsLine ? ('FULL BRAND PALETTE (for reference): ' + colorsLine + '\n') : '')
+      + (brand.guidelines ? ('BRAND GUIDELINES:\n' + brand.guidelines) : '');
     const size = body.size || '1024x768';
     const quality = body.quality || 'high';
     const refImages = (Array.isArray(body.refImages) && body.refImages.length)
@@ -45,7 +54,11 @@ module.exports = async function handler(req, res) {
       const p = parseDataUrl(u);
       return { type: 'image', source: { type: 'base64', media_type: p.media, data: p.b64 } };
     });
-    content.push({ type: 'text', text: 'What the user wants to convey / change: ' + intent + '\n\nWrite the single best GPT Image 2 edit prompt to achieve this against the reference above.' });
+    const format = (body.format || '').trim();
+    content.push({ type: 'text', text: 'What the user wants to convey / change: ' + intent
+      + (brandBlock ? ('\n\nBRAND KIT — the prompt MUST follow this exactly:\n' + brandBlock) : '')
+      + (format ? ('\n\nTARGET OUTPUT FORMAT: ' + format + ' — compose the layout to fit this exact orientation. If the reference image is a different shape, ADAPT its style, colors, fonts and elements to this format rather than copying its exact composition; mention the orientation in the prompt.') : '')
+      + '\n\nWrite the single best GPT Image 2 edit prompt to achieve this against the reference above.' });
 
     const cr = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',

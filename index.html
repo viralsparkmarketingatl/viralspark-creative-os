@@ -154,22 +154,6 @@ canvas#stage{display:none}
         <div class="card">
           <label class="f">Client</label>
           <select id="clientSel"></select>
-          <label class="f">Template</label>
-          <select id="templateSel"></select>
-
-          <label class="f">Headline Set — how to fill the eyebrow + subline on each graphic</label>
-          <select id="copyMode">
-            <option value="rotate">Rotate through built-in headlines</option>
-            <option value="single">Use one headline for all</option>
-            <option value="ai">Generate fresh headlines with AI (uses your OpenAI key)</option>
-          </select>
-
-          <div id="singleWrap" style="display:none">
-            <label class="f">Eyebrow banner</label>
-            <input id="eyebrowIn" value="BIG ANNOUNCEMENT!">
-            <label class="f">Subline</label>
-            <input id="sublineIn" value="YOU HAVE TO SEE THIS.">
-          </div>
 
           <label class="f">Image source</label>
           <select id="imgMode">
@@ -204,12 +188,14 @@ canvas#stage{display:none}
               <div class="hint">Any size — party flyers, banners, whatever you need. I generate at the closest supported ratio, then resize to your exact pixels.</div>
             </div>
             <div id="carouselWrap" style="display:none">
-              <label class="f">Pages per carousel</label>
-              <input id="carouselPages" type="number" min="2" max="6" value="3">
-              <label class="f">How many carousels (batch — up to 10)</label>
-              <input id="carouselCount" type="number" min="1" max="10" value="1">
+              <div id="pagesWrap">
+                <label class="f">Pages per carousel</label>
+                <input id="carouselPages" type="number" min="2" max="6" value="3">
+              </div>
+              <label class="f">How many (batch — up to 100)</label>
+              <input id="carouselCount" type="number" min="1" max="100" value="1">
               <div id="batchItems"></div>
-              <div class="hint">Each box = one carousel. Paste a <b>blog/website URL</b>, or type the <b>topic + your directions</b> (or both — a URL plus a note). I write the prompts and generate them all as one batch. ~50–65¢ per 3-page carousel.</div>
+              <div class="hint">Each box = one post. Paste a <b>blog/website URL</b>, or type the <b>topic + your directions</b> (or both), and pick its <b>style</b>. I write the prompts and generate the whole batch. ~15–25¢ each.</div>
             </div>
             <div id="styleSelWrap" style="display:none">
               <label class="f">🎨 Brand style — pick which saved style to use (loads its reference + exact colors)</label>
@@ -333,8 +319,10 @@ canvas#stage{display:none}
             <label class="f">Navy</label><input id="bkNavy">
             <label class="f">Yellow</label><input id="bkYellow">
             <label class="f">Blue accent</label><input id="bkBlue">
-            <div class="kv" style="margin-top:16px">
-              <b>Logo</b><span><img id="bkLogo" style="height:46px;background:#0A2547;padding:6px;border-radius:8px" alt="logo"></span>
+            <label class="f" style="margin-top:16px">Logo — sent as a reference on every graphic so it always matches (transparent PNG best)</label>
+            <div class="kv" style="align-items:center;gap:12px">
+              <img id="bkLogo" style="height:46px;max-width:160px;background:rgba(0,0,0,.12);padding:6px;border-radius:8px" alt="logo">
+              <input id="bkLogoInput" type="file" accept="image/*">
             </div>
           </div>
         </div>
@@ -424,7 +412,7 @@ const DEFAULT_RUBY = {
   name:'Ruby Vet',
   navy:'#336B4D', yellow:'#FBB600', blue:'#638AB8', white:'#F9F9F9',
   offer:'', locations:'', cta1:'', cta2:'',
-  logo:'',
+  logo:(window.RUBY_VET_LOGO||''),
   colors:[
     {name:'Sea',        hex:'#638AB8'},
     {name:'Forrest',    hex:'#336B4D'},
@@ -447,7 +435,7 @@ FORMAT: Instagram carousel, portrait 4:5 ratio, final size 1080x1350.`,
 let brandKits = LS.get('vs_brandkits', { 'compare-deals': DEFAULT_CD });
 if(window.COMPARE_DEALS_LOGO) brandKits['compare-deals'].logo = window.COMPARE_DEALS_LOGO; // always use the embedded real logo
 if(!brandKits['ruby-vet']) brandKits['ruby-vet'] = DEFAULT_RUBY; // ensure Ruby Vet exists even on saved kits
-else { const rv=brandKits['ruby-vet']; rv.colors=DEFAULT_RUBY.colors; rv.guidelines=DEFAULT_RUBY.guidelines; rv.styleLib=DEFAULT_RUBY.styleLib; rv.gbpLib=DEFAULT_RUBY.gbpLib; } // always refresh code-defined brand assets from the latest build
+else { const rv=brandKits['ruby-vet']; rv.colors=DEFAULT_RUBY.colors; rv.guidelines=DEFAULT_RUBY.guidelines; rv.styleLib=DEFAULT_RUBY.styleLib; rv.gbpLib=DEFAULT_RUBY.gbpLib; if(!rv.logo) rv.logo=DEFAULT_RUBY.logo; } // refresh code-defined brand assets; keep an uploaded logo if present
 function saveKits(){ LS.set('vs_brandkits', brandKits); }
 // Client dropdown order — Ruby Vet is the default (first) option
 function kitEntries(){ const p='ruby-vet'; const hide=['compare-deals']; /* hidden for the Ruby Vet demo — remove from this array to show it again */ return [p, ...Object.keys(brandKits).filter(k=>k!==p)].filter(k=>brandKits[k] && !hide.includes(k)).map(k=>[k, brandKits[k]]); }
@@ -590,15 +578,15 @@ let styleRefs = window.RUBY_VET_REF ? [window.RUBY_VET_REF] : (window.CD_STYLE_R
 let selectedStyle = null; // the chosen brand style {label,bg,text,accent,url} from the client's styleLib
 // Output formats — gen = a valid gpt-image-2 size (edges ×16) at the target aspect; w/h = exact final size we resize to
 const FORMATS = {
-  carousel:{gen:'1024x1280', w:1080, h:1350, carousel:true,  fmt:'portrait 4:5 vertical Instagram carousel page'},
-  cover:   {gen:'1056x1408', w:1080, h:1440, carousel:false, fmt:'portrait 3:4 vertical Instagram profile cover'},
-  gbp:     {gen:'1024x768',  w:1200, h:900,  carousel:false, fmt:'horizontal landscape 4:3 Google Business Profile post'}
+  carousel:{gen:'1024x1280', w:1080, h:1350, carousel:true,  batch:true, fmt:'portrait 4:5 vertical Instagram carousel page'},
+  cover:   {gen:'1056x1408', w:1080, h:1440, carousel:false, batch:true, fmt:'portrait 3:4 vertical Instagram profile cover'},
+  gbp:     {gen:'1024x768',  w:1200, h:900,  carousel:false, batch:true, fmt:'horizontal landscape 4:3 Google Business Profile post'}
 };
 // closest valid gpt-image-2 gen size (edges ×16, ratio clamped to 3:1) for any target W×H
 function customGen(w,h){ let a=w/h; if(a>3)a=3; if(a<1/3)a=1/3; let gw,gh; if(a>=1){gw=1024;gh=Math.round(1024/a);}else{gh=1024;gw=Math.round(1024*a);} const r=x=>Math.max(256,Math.round(x/16)*16); gw=r(gw); gh=r(gh); while(gw/gh>3) gh+=16; while(gh/gw>3) gw+=16; return gw+'x'+gh; }
 function curFormat(){
   const el=$('fmtSel'); const v=el?el.value:'carousel';
-  if(v==='custom'){ const w=Math.min(4000,Math.max(200,parseInt(($('customW')||{}).value,10)||1080)); const h=Math.min(4000,Math.max(200,parseInt(($('customH')||{}).value,10)||1080)); return {gen:customGen(w,h),w:w,h:h,carousel:false,fmt:'custom '+w+'×'+h+' pixel graphic — compose the layout to fit this exact rectangle'}; }
+  if(v==='custom'){ const w=Math.min(4000,Math.max(200,parseInt(($('customW')||{}).value,10)||1080)); const h=Math.min(4000,Math.max(200,parseInt(($('customH')||{}).value,10)||1080)); return {gen:customGen(w,h),w:w,h:h,carousel:false,batch:false,fmt:'custom '+w+'×'+h+' pixel graphic — compose the layout to fit this exact rectangle'}; }
   return FORMATS[v]||FORMATS.carousel;
 }
 async function resizeDataURL(url,maxW){ const img=await loadImg(url); if(img.width<=maxW) return url; const c=document.createElement('canvas'); const s=maxW/img.width; c.width=maxW; c.height=Math.round(img.height*s); c.getContext('2d').drawImage(img,0,0,c.width,c.height); return c.toDataURL('image/jpeg',0.85); }
@@ -618,13 +606,13 @@ function scenePrompt(i,extra){
 async function aiFullPoster(set,extra,i,size){
   const subFull=set.subline+(set.accent?(' '+set.accent):'');
   const prompt=`Recreate this reference graphic in the EXACT same layout, color scheme, fonts, logo placement, and overall design structure as the reference image. Keep every brand element, logo, badge, icon, and fixed label identical to the reference. Change ONLY the main headline text to read "${set.eyebrow}"${subFull?(', with a secondary line reading "'+subFull+'"'):''}${extra?(', and update the featured photo/subject to: '+extra):''}. Keep the same professional, polished, on-brand style. Spell every word exactly right. Sharp, high detail, print-quality.`;
-  return 'data:image/png;base64,'+await callImage(prompt, styleRefs, size);
+  return 'data:image/png;base64,'+await callImage(prompt, refsWithLogo(styleRefs), size);
 }
 // SMART mode: Claude sees the references + your intent, writes the prompt, then GPT Image 2 renders. Returns {prompt, b64}.
 async function callSmartImage(intent, size, format){
   const base=getEndpoint(); if(!base) throw new Error('no image endpoint set (Settings)');
   const ep=base.replace('/generate-image','/smart-image');
-  const refs=styleRefs.filter(Boolean);
+  const refs=refsWithLogo(styleRefs.filter(Boolean));
   const res=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({intent,refImages:refs,brand:brandPayload(),format:format||'',quality:'high',size:size||'1024x768'})});
   const data=await res.json().catch(()=>({error:'bad response from endpoint'}));
   if(!res.ok||data.error) throw new Error(data.error||('endpoint '+res.status));
@@ -639,42 +627,44 @@ async function callCarousel(payload){
   if(!res.ok||data.error) throw new Error(data.error||('endpoint '+res.status));
   return data;
 }
+function refsWithLogo(refs){ const b=activeBrand()||{}; const out=(refs||[]).slice(); if(b.logo && out.indexOf(b.logo)<0) out.push(b.logo); return out; }
 async function runCarousel(){
-  const fmt=curFormat();
-  const pages=Math.min(6,Math.max(2,parseInt($('carouselPages').value||3)));
+  const fmt=curFormat(); const fv=$('fmtSel').value;
+  const pages=fmt.carousel?Math.min(6,Math.max(2,parseInt($('carouselPages').value||3))):1;
+  const noun=fmt.carousel?'Carousel':(fv==='gbp'?'GBP post':'Cover');
   const lib=curLib();
   const items=[...document.querySelectorAll('.batchitem')].map(t=>{
     const i=t.dataset.i; const sel=document.querySelector('.batchstyle[data-i="'+i+'"]');
     const idx=sel?parseInt(sel.value,10):-1;
     return { text:t.value.trim(), style:(idx>=0&&lib[idx])?lib[idx]:selectedStyle };
   }).filter(it=>it.text);
-  if(!items.length){ $('status').className='status'; $('status').textContent='Add at least one carousel — a blog URL, or a topic + directions.'; return; }
+  if(!items.length){ $('status').className='status'; $('status').textContent='Add at least one — a blog URL, or a topic + directions.'; return; }
   generated=[]; $('previewGrid').innerHTML=''; if($('smartPromptOut'))$('smartPromptOut').style.display='none';
   const plans=[];
   try{
     for(let k=0;k<items.length;k++){
       const it=items[k];
-      const refs=(it.style && it.style.url)?[it.style.url]:styleRefs.filter(Boolean);
+      const refs=refsWithLogo((it.style && it.style.url)?[it.style.url]:styleRefs.filter(Boolean));
       const url=(it.text.match(/https?:\/\/\S+/)||[''])[0];
-      $('status').className='status busy'; $('status').textContent='Carousel '+(k+1)+' of '+items.length+(it.style?(' · '+it.style.label):'')+' — planning + generating '+pages+' pages…';
+      $('status').className='status busy'; $('status').textContent=noun+' '+(k+1)+' of '+items.length+(it.style?(' · '+it.style.label):'')+' — planning + generating…';
       const r=await callCarousel({brief:it.text,blogUrl:url,pages,refImages:refs,brand:brandPayload(it.style),format:fmt.fmt,quality:'high',size:fmt.gen});
       const list=(r.pages||[]).slice().sort((a,b)=>(a.page||0)-(b.page||0));
       for(let idx=0;idx<list.length;idx++){
         const p=list[idx];
         const durl=await resizeTo('data:image/png;base64,'+p.b64, fmt.w, fmt.h);
-        const fn='carousel-'+String(k+1).padStart(2,'0')+'-p'+String(p.page||idx+1).padStart(2,'0')+'.png';
+        const fn=(fmt.carousel?('carousel-'+String(k+1).padStart(2,'0')+'-p'+String(p.page||idx+1).padStart(2,'0')):(fv+'-'+String(k+1).padStart(2,'0')))+'.png';
         generated.push({fn,dataURL:durl}); addPreview(fn,durl);
       }
-      plans.push('▸ Carousel '+(k+1)+(it.style?(' ['+esc(it.style.label)+']'):'')+': '+list.map(p=>'p'+(p.page||'?')+' '+esc(p.headline||'')).join('  ·  '));
+      plans.push('▸ '+noun+' '+(k+1)+(it.style?(' ['+esc(it.style.label)+']'):'')+': '+list.map(p=>esc(p.headline||'')).join('  ·  '));
       await new Promise(r=>setTimeout(r,0));
     }
-    if($('smartPromptOut')){ $('smartPromptOut').style.display='block'; $('smartPromptOut').innerHTML='<b>📱 Batch plan — '+items.length+' carousel'+(items.length>1?'s':'')+'</b>'+plans.join('\n'); }
-    $('status').className='status'; $('status').textContent='Done — '+items.length+' carousel'+(items.length>1?'s':'')+' ('+generated.length+' pages) at '+fmt.w+'×'+fmt.h+'. Download All for everything.';
-  }catch(e){ $('status').className='status'; $('status').textContent='Batch stopped — '+e.message+' ('+generated.length+' pages done). Fix and re-run.'; }
+    if($('smartPromptOut')){ $('smartPromptOut').style.display='block'; $('smartPromptOut').innerHTML='<b>📦 Batch plan — '+items.length+' '+noun+(items.length>1?'s':'')+'</b>'+plans.join('\n'); }
+    $('status').className='status'; $('status').textContent='Done — '+items.length+' '+noun+(items.length>1?'s':'')+' ('+generated.length+' images) at '+fmt.w+'×'+fmt.h+'. Download All for everything.';
+  }catch(e){ $('status').className='status'; $('status').textContent='Batch stopped — '+e.message+' ('+generated.length+' done). Fix and re-run.'; }
 }
 function renderBatchItems(){
   const c=$('batchItems'); if(!c) return;
-  const n=Math.min(10,Math.max(1,parseInt($('carouselCount').value||1)));
+  const n=Math.min(100,Math.max(1,parseInt($('carouselCount').value||1)));
   const lib=curLib();
   const styleOpts=lib.map((s,i)=>'<option value="'+i+'">Style '+(i+1)+' — '+s.label+'</option>').join('');
   const oldText=[...c.querySelectorAll('.batchitem')].map(t=>t.value);
@@ -700,10 +690,7 @@ function brandPayload(styleOverride){ const b=activeBrand()||{}; const st=(style
 async function resizeTo(url,w,h){ const img=await loadImg(url); const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h); return c.toDataURL('image/png'); }
 
 async function buildHeadlineSets(count){
-  const mode=$('copyMode').value;
-  if(mode==='single'){ const e=$('eyebrowIn').value.trim(); const s=$('sublineIn').value.trim(); return Array.from({length:count},()=>({eyebrow:e,subline:s,accent:'',bar:'blue'})); }
-  if(mode==='ai'){ try{ return await aiHeadlines(count); }catch(err){ $('status').textContent='AI failed ('+err.message+') — using built-in headlines.'; } }
-  // rotate
+  // headline fallback only used when generating a single image WITHOUT a "Describe it" intent
   const out=[]; for(let i=0;i<count;i++){const p=MATTRESS_PRESETS[i%MATTRESS_PRESETS.length];out.push({eyebrow:p.e,subline:p.s,accent:p.a,bar:p.bar});} return out;
 }
 
@@ -725,7 +712,7 @@ async function generate(){
     if(mode==='airef' && !styleRefs.length){ $('status').textContent='No style reference loaded — add at least one in the AI panel.'; return; }
     count=Math.min(50,Math.max(1,parseInt($('aiCount').value||4)));
   }
-  if(mode==='airef' && fmt.carousel){ await runCarousel(); return; }
+  if(mode==='airef' && fmt.batch){ await runCarousel(); return; }
   const sets=await buildHeadlineSets(count);
   const extra=$('aiExtra').value.trim();
   generated=[]; $('previewGrid').innerHTML='';
@@ -804,10 +791,8 @@ document.querySelectorAll('.navbtn[data-screen]').forEach(b=>b.onclick=()=>{
 function fillClients(){
   $('clientSel').innerHTML=kitEntries().map(([k,v])=>`<option value="${k}">${v.name}</option>`).join('');
 }
-function fillTemplates(){ $('templateSel').innerHTML='<option value="cd-mattress">Reference Poster — recreate my design</option>'; }
-fillClients(); fillTemplates();
+fillClients();
 
-$('copyMode').onchange=()=>{ $('singleWrap').style.display=$('copyMode').value==='single'?'block':'none'; };
 $('imgMode').onchange=()=>{ const m=$('imgMode').value; $('uploadWrap').style.display=(m==='upload')?'block':'none'; $('aiWrap').style.display=(m==='upload')?'none':'block'; $('styleRefWrap').style.display=(m==='airef')?'block':'none'; };
 // style references: default embedded + up to 5 total, add/remove
 function renderStyleThumbs(){
@@ -845,13 +830,14 @@ $('clientSel').onchange=()=>{ fillStyles(); renderBatchItems(); };
 fillStyles();
 $('imgMode').onchange(); // set initial visibility (default = reference mode)
 $('fmtSel').onchange=()=>{
-  const car=curFormat().carousel;
-  $('carouselWrap').style.display=car?'block':'none';
+  const f=curFormat(); const bat=f.batch, multipage=f.carousel;
+  $('carouselWrap').style.display=bat?'block':'none';
+  if($('pagesWrap'))$('pagesWrap').style.display=multipage?'block':'none';
   if($('customWrap'))$('customWrap').style.display=($('fmtSel').value==='custom')?'block':'none';
-  if($('intentWrap'))$('intentWrap').style.display=car?'none':'block';
+  if($('intentWrap'))$('intentWrap').style.display=bat?'none':'block';
   fillStyles();
-  if($('styleRefWrap'))$('styleRefWrap').style.display=car?'none':'block';
-  if(car){ if($('styleSelWrap'))$('styleSelWrap').style.display='none'; renderBatchItems(); }
+  if($('styleRefWrap'))$('styleRefWrap').style.display=bat?'none':'block';
+  if(bat){ if($('styleSelWrap'))$('styleSelWrap').style.display='none'; renderBatchItems(); }
 };
 $('carouselCount').oninput=renderBatchItems; renderBatchItems();
 $('fmtSel').onchange();
@@ -867,6 +853,13 @@ function loadKitForm(){
   const lg=$('bkLogo'); if(b.logo){lg.src=b.logo;lg.style.display='';}else{lg.style.display='none';}
 }
 loadKitForm();
+$('bkLogoInput').onchange=async()=>{
+  const f=$('bkLogoInput').files[0]; if(!f) return;
+  let url=await fileToURL(f); url=await resizeDataURL(url,600);
+  const b=brandKits['ruby-vet']; b.logo=url; saveKits();
+  const lg=$('bkLogo'); lg.src=url; lg.style.display='';
+  $('bkLogoInput').value='';
+};
 $('bkSave').onclick=()=>{
   const b=brandKits['ruby-vet'];
   b.offer=$('bkOffer').value;b.locations=$('bkLocations').value;b.cta1=$('bkCta1').value;b.cta2=$('bkCta2').value;

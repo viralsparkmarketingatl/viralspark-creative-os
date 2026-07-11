@@ -64,6 +64,8 @@ body{font-family:var(--f-body);background:var(--vs-bg);color:var(--vs-text);-web
 .refthumb:first-child{border-color:var(--vs-blue,#3B82F6)}
 .refthumb .reftag{position:absolute;bottom:0;left:0;right:0;background:rgba(59,130,246,.9);color:#fff;font-size:9px;font-weight:700;text-align:center;letter-spacing:.04em;padding:1px 0}
 .refthumbs .refcount{width:100%;font-size:11px;color:var(--vs-text-3,#8a93a6);margin-top:2px}
+.smartprompt{font-size:12.5px;line-height:1.55;color:var(--vs-text-2,#c8cfda);background:rgba(59,130,246,.08);border:1px solid var(--vs-line,rgba(59,130,246,.2));border-left:3px solid var(--vs-blue,#3B82F6);border-radius:10px;padding:11px 13px;margin-bottom:12px;white-space:pre-wrap}
+.smartprompt b{color:var(--vs-blue,#3B82F6);font-family:var(--f-mono,monospace);font-size:10px;letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:5px}
 .head{margin-bottom:24px}
 .eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--vs-blue);margin-bottom:8px}
 h1.title{font-family:var(--f-display);font-weight:700;font-size:32px;letter-spacing:-.025em;color:var(--vs-navy)}
@@ -175,6 +177,9 @@ canvas#stage{display:none}
           </div>
 
           <div id="aiWrap">
+            <label class="f">✨ Describe it — let Claude write the prompt (optional)</label>
+            <textarea id="aiIntent" placeholder="e.g. Make a Valentine's version of this for Ruby Vet — a dog with a heart bandana, keep the exact layout + logo, change the headline to 'Pet Dental Month'"></textarea>
+            <div class="hint">Leave blank to use the built-in headline sets. Fill it in and <b>Claude looks at your reference, writes the ideal GPT Image 2 prompt, and generates</b> — you'll see the prompt it wrote. Adds ~2–3¢ per image.</div>
             <div id="styleRefWrap">
               <label class="f">Style references — the app recreates this design (add up to 5 for more accuracy)</label>
               <div id="styleRefThumbs" class="refthumbs"></div>
@@ -197,6 +202,7 @@ canvas#stage{display:none}
 
         <div class="card">
           <div class="status" id="status">No graphics yet. Add photos and hit Generate.</div>
+          <div id="smartPromptOut" class="smartprompt" style="display:none"></div>
           <div class="previewGrid" id="previewGrid"></div>
         </div>
       </div>
@@ -531,7 +537,7 @@ async function resizeDataURL(url,maxW){ const img=await loadImg(url); if(img.wid
 async function callImage(prompt, refImages){
   const ep=getEndpoint(); if(!ep) throw new Error('no image endpoint set (Settings)');
   const refs=Array.isArray(refImages)?refImages.filter(Boolean):(refImages?[refImages]:[]);
-  const res=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,refImages:refs,refImage:refs[0]||null,quality:'high',size:'2048x1536'})});
+  const res=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,refImages:refs,refImage:refs[0]||null,quality:'high',size:'1024x768'})});
   const data=await res.json().catch(()=>({error:'bad response from endpoint'}));
   if(!res.ok||data.error) throw new Error(data.error||('endpoint '+res.status));
   return data.b64;
@@ -545,6 +551,16 @@ async function aiFullPoster(set,extra,i){
   const subFull=set.subline+(set.accent?(' '+set.accent):'');
   const prompt=`Recreate this reference graphic in the EXACT same layout, color scheme, fonts, logo placement, and overall design structure as the reference image. Keep every brand element, logo, badge, icon, and fixed label identical to the reference. Change ONLY the main headline text to read "${set.eyebrow}"${subFull?(', with a secondary line reading "'+subFull+'"'):''}${extra?(', and update the featured photo/subject to: '+extra):''}. Keep the same professional, polished, on-brand style. Spell every word exactly right. Sharp, high detail, print-quality.`;
   return 'data:image/png;base64,'+await callImage(prompt, styleRefs);
+}
+// SMART mode: Claude sees the references + your intent, writes the prompt, then GPT Image 2 renders. Returns {prompt, b64}.
+async function callSmartImage(intent){
+  const base=getEndpoint(); if(!base) throw new Error('no image endpoint set (Settings)');
+  const ep=base.replace('/generate-image','/smart-image');
+  const refs=styleRefs.filter(Boolean);
+  const res=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({intent,refImages:refs,quality:'high',size:'1024x768'})});
+  const data=await res.json().catch(()=>({error:'bad response from endpoint'}));
+  if(!res.ok||data.error) throw new Error(data.error||('endpoint '+res.status));
+  return data;
 }
 
 /* ---------- GENERATE FLOW ---------- */
@@ -592,11 +608,19 @@ async function generate(){
         const img=await aiScene(scenePrompt(i,extra));
         finalURL=renderTemplate(ctx,img,brand,sets[i]);
       } else { // airef — full poster recreated from the reference
-        $('status').className='status busy'; $('status').textContent=`Generating AI poster ${i+1} of ${count}… (10–20s each)`;
-        finalURL=await aiFullPoster(sets[i],extra,i);
+        const intent = $('aiIntent') ? $('aiIntent').value.trim() : '';
+        if(intent){
+          $('status').className='status busy'; $('status').textContent=`Claude is reading your references, writing the prompt + generating ${i+1} of ${count}… (~30–60s each)`;
+          const r=await callSmartImage(intent);
+          if($('smartPromptOut')){ $('smartPromptOut').style.display='block'; $('smartPromptOut').innerHTML='<b>📝 Prompt Claude wrote</b>'+String(r.prompt||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+          finalURL='data:image/png;base64,'+r.b64;
+        } else {
+          $('status').className='status busy'; $('status').textContent=`Generating AI poster ${i+1} of ${count}… (10–20s each)`;
+          finalURL=await aiFullPoster(sets[i],extra,i);
+        }
       }
     }catch(e){ $('status').className='status'; $('status').textContent='Stopped at '+(i+1)+' — '+e.message; return; }
-    const fn='compare-deals-gbp-'+String(i+1).padStart(3,'0')+'.png';
+    const fn='graphic-'+String(i+1).padStart(3,'0')+'.png';
     generated.push({fn,dataURL:finalURL});
     addPreview(fn,finalURL);
     await new Promise(r=>setTimeout(r,0));

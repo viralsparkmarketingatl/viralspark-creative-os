@@ -109,6 +109,7 @@ textarea{min-height:64px;resize:vertical}
 .slcard img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;background:#f2f2f2}
 .slnoimg{width:100%;aspect-ratio:4/5;display:flex;align-items:center;justify-content:center;background:#f2f2f2;color:#aaa;font-family:var(--f-mono);font-size:11px}
 .slmeta{padding:9px 10px}
+.slnum{font-family:var(--f-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--vs-blue);margin-bottom:3px}
 .sllabel{font-family:var(--f-display);font-weight:700;font-size:12px;line-height:1.25;margin-bottom:6px}
 .slsw{display:flex;gap:5px;margin-bottom:5px}
 .slsw .sw{width:15px;height:15px;border-radius:4px;border:1px solid rgba(0,0,0,.12);display:inline-block}
@@ -941,17 +942,17 @@ function renderBrandStyleLib(){
   const styles=b.styleLib||[]; const gbp=b.gbpLib||[];
   let html='';
   if(styles.length){
-    html+='<div class="slgroup">Instagram styles ('+styles.length+') — image + exact colors</div><div class="slgrid">';
-    html+=styles.map(s=>'<div class="slcard">'+(s.url?'<img src="'+s.url+'" alt="'+(s.label||'')+'">':'<div class="slnoimg">no image</div>')+
-      '<div class="slmeta"><div class="sllabel">'+(s.label||('Style '+(s.n||'')))+'</div>'+
+    html+='<div class="slgroup">Instagram styles ('+styles.length+') — image + exact colors · numbers match the generator dropdown</div><div class="slgrid">';
+    html+=styles.map((s,idx)=>'<div class="slcard">'+(s.url?'<img src="'+s.url+'" alt="'+(s.label||'')+'">':'<div class="slnoimg">no image</div>')+
+      '<div class="slmeta"><div class="slnum">Style Reference '+(idx+1)+'</div><div class="sllabel">'+(s.label||('Style '+(idx+1)))+'</div>'+
       '<div class="slsw">'+(s.bg?swatch(s.bg):'')+(s.text?swatch(s.text):'')+(s.accent?swatch(s.accent):'')+'</div>'+
       '<div class="slhex">'+[s.bg,s.text,s.accent].filter(Boolean).join(' · ')+'</div></div></div>').join('');
     html+='</div>';
   }
   if(gbp.length){
-    html+='<div class="slgroup" style="margin-top:16px">Google Business Profile references ('+gbp.length+')</div><div class="slgrid">';
-    html+=gbp.map(s=>'<div class="slcard">'+(s.url?'<img src="'+s.url+'" alt="'+(s.label||'')+'">':'<div class="slnoimg">no image</div>')+
-      '<div class="slmeta"><div class="sllabel">'+(s.label||('GBP '+(s.n||'')))+'</div></div></div>').join('');
+    html+='<div class="slgroup" style="margin-top:16px">Google Business Profile references ('+gbp.length+') · numbers match the GBP dropdown</div><div class="slgrid">';
+    html+=gbp.map((s,idx)=>'<div class="slcard">'+(s.url?'<img src="'+s.url+'" alt="'+(s.label||'')+'">':'<div class="slnoimg">no image</div>')+
+      '<div class="slmeta"><div class="slnum">GBP Reference '+(idx+1)+'</div><div class="sllabel">'+(s.label||('GBP '+(idx+1)))+'</div></div></div>').join('');
     html+='</div>';
   }
   wrap.innerHTML=html||'<div class="subt">No style references loaded for this brand yet.</div>';

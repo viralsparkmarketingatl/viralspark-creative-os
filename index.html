@@ -114,6 +114,10 @@ textarea{min-height:64px;resize:vertical}
 .slsw{display:flex;gap:5px;margin-bottom:5px}
 .slsw .sw{width:15px;height:15px;border-radius:4px;border:1px solid rgba(0,0,0,.12);display:inline-block}
 .slhex{font-family:var(--f-mono);font-size:9px;color:var(--vs-text-2);word-break:break-all}
+.segwrap{display:flex;gap:8px;margin-bottom:12px}
+.seg{flex:1;border:1px solid var(--vs-line);background:#fff;border-radius:10px;padding:11px;font-family:var(--f-display);font-weight:600;font-size:13px;cursor:pointer;color:var(--vs-text-2);transition:.15s}
+.seg.on{background:var(--vs-blue);color:#fff;border-color:var(--vs-blue)}
+#vidOut video{border-radius:12px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .chip{font-family:var(--f-mono);font-size:11px;background:#EEF1F5;border:1px solid var(--vs-line);border-radius:8px;padding:6px 10px;color:var(--vs-navy)}
 .kv{display:grid;grid-template-columns:120px 1fr;gap:8px 14px;font-size:13px;margin-top:4px}
@@ -142,6 +146,7 @@ canvas#stage{display:none}
     <div class="navlabel">Produce</div>
     <button class="navbtn active" data-screen="generate"><span class="ic">⚡</span> Graphic Design Generator</button>
     <button class="navbtn" data-screen="scripts"><span class="ic">✍</span> Script Generator</button>
+    <button class="navbtn" data-screen="video"><span class="ic">🎬</span> Video Generator</button>
     <button class="navbtn soon" disabled><span class="ic">◈</span> Ad Generator <span class="tag">Soon</span></button>
     <div class="navlabel">Library</div>
     <button class="navbtn" data-screen="history"><span class="ic">🕘</span> History</button>
@@ -310,6 +315,42 @@ canvas#stage{display:none}
       </div>
     </section>
 
+    <!-- VIDEO GENERATOR -->
+    <section class="screen" id="screen-video">
+      <div class="head">
+        <div class="eyebrow">Motion</div>
+        <h1 class="title">Video Generator</h1>
+        <p class="subt">One click turns a prompt — or one of your graphics — into a short, broadcast-quality social video ad, powered by Higgsfield. Pre-loaded with a proven Ruby Vet demo: just hit Generate.</p>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <label class="f">Mode</label>
+          <div class="segwrap" id="vidMode">
+            <button type="button" class="seg on" data-mode="text">🎬 Text → Video</button>
+            <button type="button" class="seg" data-mode="image">🖼️ Image → Video</button>
+          </div>
+          <div id="vidImgWrap" style="display:none">
+            <label class="f">Starting image — public URL of the graphic to animate</label>
+            <input id="vidImgUrl" placeholder="https://…/rubyvet-hero.jpg">
+          </div>
+          <label class="f">Prompt (pre-loaded demo — edit it, or just hit Generate)</label>
+          <textarea id="vidPrompt" style="min-height:120px"></textarea>
+          <div class="kv" style="gap:10px;margin-top:6px">
+            <div style="flex:1"><label class="f">Aspect</label><select id="vidAspect"><option value="9:16">9:16 — Reels / TikTok</option><option value="16:9">16:9 — Landscape</option><option value="1:1">1:1 — Square</option></select></div>
+            <div style="flex:1"><label class="f">Length</label><select id="vidDur"><option value="5">5 seconds</option><option value="10">10 seconds</option></select></div>
+          </div>
+          <div class="actions">
+            <button class="btn primary full" id="vidGenBtn">Generate Video</button>
+          </div>
+          <div class="hint">Higgsfield renders take about <b>2–4 minutes</b>. Leave this tab open — the finished video drops in automatically and auto-saves to your History.</div>
+        </div>
+        <div class="card">
+          <div class="status" id="vidStatus">Ready. Just hit Generate — no settings needed.</div>
+          <div id="vidOut"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- BRAND KITS -->
     <section class="screen" id="screen-brandkits">
       <div class="head">
@@ -432,6 +473,7 @@ const LS = {
 // Default API endpoints so a fresh device works with zero setup (only if not already set)
 if(!LS.get('vs_image_endpoint','')) LS.set('vs_image_endpoint','https://creative-os-api.vercel.app/api/generate-image');
 if(!LS.get('vs_script_endpoint','')) LS.set('vs_script_endpoint','https://creative-os-api.vercel.app/api/generate-script');
+if(!LS.get('vs_higgs_endpoint','')) LS.set('vs_higgs_endpoint','https://creative-os-api.vercel.app/api/higgsfield-video');
 
 /* ---------- HISTORY (auto-save every generated image to the browser's own database) ---------- */
 /* IndexedDB survives refresh / closing the tab / phone calls — nothing is lost until the user clears it. */
@@ -827,9 +869,15 @@ async function loadHistory(){
   histItems.forEach(it=>{
     const d=document.createElement('div');d.className='pcard';
     const meta=(it.client?it.client+' · ':'')+(it.fn||'graphic.png');
-    d.innerHTML='<img src="'+it.dataURL+'" alt="'+meta+'"><div class="pf"><span>'+meta+'</span><button>Download</button></div>';
-    d.querySelector('button').onclick=()=>download(it.dataURL,it.fn||'graphic.png');
-    d.querySelector('img').onclick=()=>download(it.dataURL,it.fn||'graphic.png');
+    const isVid=(it.kind==='video');
+    const media=isVid
+      ? '<video src="'+it.dataURL+'" controls muted loop playsinline style="width:100%;display:block;background:#000"></video>'
+      : '<img src="'+it.dataURL+'" alt="'+meta+'">';
+    const dl=isVid
+      ? '<a href="'+it.dataURL+'" download="'+(it.fn||'video.mp4')+'" target="_blank" style="text-decoration:none"><button>Download</button></a>'
+      : '<button>Download</button>';
+    d.innerHTML=media+'<div class="pf"><span>'+meta+'</span>'+dl+'</div>';
+    if(!isVid){ d.querySelector('button').onclick=()=>download(it.dataURL,it.fn||'graphic.png'); d.querySelector('img').onclick=()=>download(it.dataURL,it.fn||'graphic.png'); }
     grid.appendChild(d);
   });
 }
@@ -925,6 +973,61 @@ $('genBtn').onclick=generate;
 $('dlAllBtn').onclick=downloadAll;
 if($('histDlAll'))$('histDlAll').onclick=historyDownloadAll;
 if($('histClear'))$('histClear').onclick=historyClear;
+
+/* ---------- VIDEO GENERATOR (Higgsfield) ---------- */
+const VIDEO_DEMO_PROMPT="Warm, cinematic vertical social ad for a veterinary urgent care clinic. A happy golden retriever is gently examined by a friendly, smiling vet in a bright, modern clinic. Soft natural light, reassuring and hopeful mood, subtle slow camera push-in, clean premium look. Warm cream tones with deep ruby-red accents.";
+let vidModeVal='text', vidPolling=false, vidT0=0;
+function higgsEndpoint(){ return LS.get('vs_higgs_endpoint','https://creative-os-api.vercel.app/api/higgsfield-video'); }
+if($('vidPrompt')) $('vidPrompt').value=VIDEO_DEMO_PROMPT;
+document.querySelectorAll('#vidMode .seg').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#vidMode .seg').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); vidModeVal=b.dataset.mode;
+  if($('vidImgWrap')) $('vidImgWrap').style.display=(vidModeVal==='image')?'block':'none';
+});
+async function higgsCall(payload){
+  const r=await fetch(higgsEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const d=await r.json().catch(()=>({error:'bad response'}));
+  if(!r.ok) throw new Error(d.error||('HTTP '+r.status));
+  return d;
+}
+function vidElapsed(){ const el=Math.floor((Date.now()-vidT0)/1000); return Math.floor(el/60)+':'+String(el%60).padStart(2,'0'); }
+async function runVideo(){
+  if(vidPolling) return;
+  const prompt=($('vidPrompt').value||'').trim();
+  if(!prompt){ $('vidStatus').className='status'; $('vidStatus').textContent='Add a prompt first.'; return; }
+  const mode=vidModeVal, imageUrl=$('vidImgUrl')?($('vidImgUrl').value||'').trim():'';
+  if(mode==='image' && !imageUrl){ $('vidStatus').className='status'; $('vidStatus').textContent='Image mode needs a public image URL.'; return; }
+  const aspect=$('vidAspect').value, dur=parseInt($('vidDur').value||5);
+  $('vidOut').innerHTML=''; $('vidStatus').className='status busy'; $('vidStatus').textContent='Submitting to Higgsfield…';
+  vidPolling=true; vidT0=Date.now(); $('vidGenBtn').disabled=true;
+  try{
+    const sub=await higgsCall({action:'submit',mode,prompt,imageUrl,aspect_ratio:aspect,duration:dur});
+    if(!sub.id) throw new Error('no job id returned');
+    const id=sub.id;
+    const poll=async()=>{
+      if(!vidPolling) return;
+      try{
+        const std=await higgsCall({action:'status',id});
+        const status=(std.status||'').toLowerCase();
+        if(status==='completed' && std.url){ finishVideo(std.url); return; }
+        if(status==='failed'||status==='nsfw'){ throw new Error('generation '+status); }
+        $('vidStatus').textContent='Rendering your video… ~2–4 min ('+vidElapsed()+')';
+        setTimeout(poll,8000);
+      }catch(e){ vidPolling=false; $('vidGenBtn').disabled=false; $('vidStatus').className='status'; $('vidStatus').textContent='Stopped — '+e.message; }
+    };
+    $('vidStatus').textContent='Rendering your video… ~2–4 min (0:00)';
+    setTimeout(poll,8000);
+  }catch(e){ vidPolling=false; $('vidGenBtn').disabled=false; $('vidStatus').className='status'; $('vidStatus').textContent='Error — '+e.message; }
+}
+function finishVideo(url){
+  vidPolling=false; $('vidGenBtn').disabled=false;
+  $('vidStatus').className='status'; $('vidStatus').textContent='Done in '+vidElapsed()+'! Your video is ready — auto-saved to History.';
+  const fn='video-'+Date.now()+'.mp4';
+  $('vidOut').innerHTML='<div class="pcard"><video src="'+url+'" controls autoplay muted loop playsinline style="width:100%;display:block;background:#000"></video><div class="pf"><span>'+fn+'</span><a href="'+url+'" download="'+fn+'" target="_blank" style="text-decoration:none"><button>Download</button></a></div></div>';
+  let client=''; try{ client=activeBrand().name||''; }catch(e){}
+  HDB.add({ts:Date.now(),fn:fn,client:client,dataURL:url,kind:'video'});
+}
+if($('vidGenBtn')) $('vidGenBtn').onclick=runVideo;
 $('clearBtn').onclick=()=>{generated=[];$('previewGrid').innerHTML='';$('status').className='status';$('status').textContent='Cleared.';};
 
 /* Brand kit form */

@@ -69,6 +69,8 @@ body{font-family:var(--f-body);background:var(--vs-bg);color:var(--vs-text);-web
 .carouseltoggle{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--vs-text-1,#eef2f8);cursor:pointer;margin:14px 0 4px}
 .carouseltoggle input{width:16px;height:16px;cursor:pointer}
 .carouseltoggle span{color:var(--vs-text-3,#8a93a6);font-size:12px}
+.batchrow{padding:6px 0 10px;margin-bottom:6px;border-bottom:1px solid var(--vs-line,rgba(120,130,150,.16))}
+.batchrow:last-child{border-bottom:0}
 .head{margin-bottom:24px}
 .eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--vs-blue);margin-bottom:8px}
 h1.title{font-family:var(--f-display);font-weight:700;font-size:32px;letter-spacing:-.025em;color:var(--vs-navy)}
@@ -627,16 +629,22 @@ async function callCarousel(payload){
 async function runCarousel(){
   const fmt=curFormat();
   const pages=Math.min(6,Math.max(2,parseInt($('carouselPages').value||3)));
-  const items=[...document.querySelectorAll('.batchitem')].map(t=>t.value.trim()).filter(Boolean);
+  const lib=curLib();
+  const items=[...document.querySelectorAll('.batchitem')].map(t=>{
+    const i=t.dataset.i; const sel=document.querySelector('.batchstyle[data-i="'+i+'"]');
+    const idx=sel?parseInt(sel.value,10):-1;
+    return { text:t.value.trim(), style:(idx>=0&&lib[idx])?lib[idx]:selectedStyle };
+  }).filter(it=>it.text);
   if(!items.length){ $('status').className='status'; $('status').textContent='Add at least one carousel — a blog URL, or a topic + directions.'; return; }
   generated=[]; $('previewGrid').innerHTML=''; if($('smartPromptOut'))$('smartPromptOut').style.display='none';
   const plans=[];
   try{
     for(let k=0;k<items.length;k++){
-      const raw=items[k];
-      const url=(raw.match(/https?:\/\/\S+/)||[''])[0];
-      $('status').className='status busy'; $('status').textContent='Carousel '+(k+1)+' of '+items.length+' — Claude planning + generating '+pages+' pages…';
-      const r=await callCarousel({brief:raw,blogUrl:url,pages,refImages:styleRefs.filter(Boolean),brand:brandPayload(),format:fmt.fmt,quality:'high',size:fmt.gen});
+      const it=items[k];
+      const refs=(it.style && it.style.url)?[it.style.url]:styleRefs.filter(Boolean);
+      const url=(it.text.match(/https?:\/\/\S+/)||[''])[0];
+      $('status').className='status busy'; $('status').textContent='Carousel '+(k+1)+' of '+items.length+(it.style?(' · '+it.style.label):'')+' — planning + generating '+pages+' pages…';
+      const r=await callCarousel({brief:it.text,blogUrl:url,pages,refImages:refs,brand:brandPayload(it.style),format:fmt.fmt,quality:'high',size:fmt.gen});
       const list=(r.pages||[]).slice().sort((a,b)=>(a.page||0)-(b.page||0));
       for(let idx=0;idx<list.length;idx++){
         const p=list[idx];
@@ -644,7 +652,7 @@ async function runCarousel(){
         const fn='carousel-'+String(k+1).padStart(2,'0')+'-p'+String(p.page||idx+1).padStart(2,'0')+'.png';
         generated.push({fn,dataURL:durl}); addPreview(fn,durl);
       }
-      plans.push('▸ Carousel '+(k+1)+': '+list.map(p=>'p'+(p.page||'?')+' '+esc(p.headline||'')).join('  ·  '));
+      plans.push('▸ Carousel '+(k+1)+(it.style?(' ['+esc(it.style.label)+']'):'')+': '+list.map(p=>'p'+(p.page||'?')+' '+esc(p.headline||'')).join('  ·  '));
       await new Promise(r=>setTimeout(r,0));
     }
     if($('smartPromptOut')){ $('smartPromptOut').style.display='block'; $('smartPromptOut').innerHTML='<b>📱 Batch plan — '+items.length+' carousel'+(items.length>1?'s':'')+'</b>'+plans.join('\n'); }
@@ -654,18 +662,27 @@ async function runCarousel(){
 function renderBatchItems(){
   const c=$('batchItems'); if(!c) return;
   const n=Math.min(10,Math.max(1,parseInt($('carouselCount').value||1)));
-  const old=[...c.querySelectorAll('.batchitem')].map(t=>t.value);
+  const lib=curLib();
+  const styleOpts=lib.map((s,i)=>'<option value="'+i+'">Style '+(i+1)+' — '+s.label+'</option>').join('');
+  const oldText=[...c.querySelectorAll('.batchitem')].map(t=>t.value);
+  const oldStyle=[...c.querySelectorAll('.batchstyle')].map(s=>s.value);
   let html='';
-  for(let i=0;i<n;i++){ html+='<label class="f" style="margin-top:8px">Carousel '+(i+1)+' — blog/website URL, or topic + directions</label><textarea class="batchitem" data-i="'+i+'" placeholder="https://…   OR   Topic: cold-weather pet safety — small dogs, playful tone, end with a Book Now CTA"></textarea>'; }
+  for(let i=0;i<n;i++){
+    html+='<div class="batchrow"><label class="f" style="margin-top:8px">Carousel '+(i+1)+' — blog/website URL, or topic + directions</label>';
+    html+='<textarea class="batchitem" data-i="'+i+'" placeholder="https://…   OR   Topic: cold-weather pet safety — small dogs, playful tone, end with a Book Now CTA"></textarea>';
+    if(lib.length){ html+='<label class="f">🎨 Style for carousel '+(i+1)+'</label><select class="batchstyle" data-i="'+i+'">'+styleOpts+'</select>'; }
+    html+='</div>';
+  }
   c.innerHTML=html;
-  c.querySelectorAll('.batchitem').forEach((t,i)=>{ if(old[i]!==undefined) t.value=old[i]; });
+  c.querySelectorAll('.batchitem').forEach((t,i)=>{ if(oldText[i]!==undefined) t.value=oldText[i]; });
+  c.querySelectorAll('.batchstyle').forEach((s,i)=>{ s.value=(oldStyle[i]!==undefined)?oldStyle[i]:'0'; });
 }
 
 /* ---------- GENERATE FLOW ---------- */
 let generated=[];
 function activeBrand(){ return brandKits[$('clientSel').value] || brandKits['ruby-vet']; }
 // Brand kit sent to Claude so every prompt is on-brand + precise
-function brandPayload(){ const b=activeBrand()||{}; return { name:b.name||'', colors:b.colors||[], guidelines:b.guidelines||'', style: (selectedStyle && selectedStyle.bg) ? {label:selectedStyle.label,bg:selectedStyle.bg,text:selectedStyle.text,accent:selectedStyle.accent} : null }; }
+function brandPayload(styleOverride){ const b=activeBrand()||{}; const st=(styleOverride!==undefined)?styleOverride:selectedStyle; return { name:b.name||'', colors:b.colors||[], guidelines:b.guidelines||'', style: (st && st.bg) ? {label:st.label,bg:st.bg,text:st.text,accent:st.accent} : null }; }
 // Resize a data URL to exact WxH (e.g. 1080x1350 for Instagram carousels)
 async function resizeTo(url,w,h){ const img=await loadImg(url); const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h); return c.toDataURL('image/png'); }
 
@@ -811,10 +828,17 @@ $('styleSel').onchange=()=>{
   else { const s=lib[parseInt(v,10)]; if(s){ selectedStyle=s; styleRefs=[s.url]; } }
   renderStyleThumbs();
 };
-$('clientSel').onchange=fillStyles;
+$('clientSel').onchange=()=>{ fillStyles(); renderBatchItems(); };
 fillStyles();
 $('imgMode').onchange(); // set initial visibility (default = reference mode)
-$('fmtSel').onchange=()=>{ const car=curFormat().carousel; $('carouselWrap').style.display=car?'block':'none'; if($('intentWrap'))$('intentWrap').style.display=car?'none':'block'; fillStyles(); };
+$('fmtSel').onchange=()=>{
+  const car=curFormat().carousel;
+  $('carouselWrap').style.display=car?'block':'none';
+  if($('intentWrap'))$('intentWrap').style.display=car?'none':'block';
+  fillStyles();
+  if($('styleRefWrap'))$('styleRefWrap').style.display=car?'none':'block';
+  if(car){ if($('styleSelWrap'))$('styleSelWrap').style.display='none'; renderBatchItems(); }
+};
 $('carouselCount').oninput=renderBatchItems; renderBatchItems();
 $('fmtSel').onchange();
 $('genBtn').onclick=generate;

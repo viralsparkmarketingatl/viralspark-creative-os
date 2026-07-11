@@ -330,8 +330,13 @@ canvas#stage{display:none}
             <button type="button" class="seg" data-mode="image">🖼️ Image → Video</button>
           </div>
           <div id="vidImgWrap" style="display:none">
-            <label class="f">Starting image — public URL of the graphic to animate</label>
-            <input id="vidImgUrl" placeholder="https://…/rubyvet-hero.jpg">
+            <label class="f">Starting image — upload the graphic to animate</label>
+            <div class="kv" style="align-items:center;gap:12px;margin-bottom:8px">
+              <img id="vidImgPreview" style="height:64px;max-width:120px;border-radius:8px;background:rgba(0,0,0,.08);object-fit:cover;display:none" alt="">
+              <input id="vidImgFile" type="file" accept="image/*">
+            </div>
+            <label class="f" style="opacity:.65">…or paste a public image URL instead (optional)</label>
+            <input id="vidImgUrl" placeholder="https://…/graphic.jpg">
           </div>
           <label class="f">Prompt (pre-loaded demo — edit it, or just hit Generate)</label>
           <textarea id="vidPrompt" style="min-height:120px"></textarea>
@@ -978,12 +983,20 @@ if($('histClear'))$('histClear').onclick=historyClear;
 const VIDEO_DEMO_PROMPT="Warm, cinematic vertical social ad for a veterinary urgent care clinic. A happy golden retriever is gently examined by a friendly, smiling vet in a bright, modern clinic. Soft natural light, reassuring and hopeful mood, subtle slow camera push-in, clean premium look. Warm cream tones with deep ruby-red accents.";
 let vidModeVal='text', vidPolling=false, vidT0=0;
 function higgsEndpoint(){ return LS.get('vs_higgs_endpoint','https://creative-os-api.vercel.app/api/higgsfield-video'); }
+let vidImgData='';
 if($('vidPrompt')) $('vidPrompt').value=VIDEO_DEMO_PROMPT;
 document.querySelectorAll('#vidMode .seg').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#vidMode .seg').forEach(x=>x.classList.remove('on'));
   b.classList.add('on'); vidModeVal=b.dataset.mode;
   if($('vidImgWrap')) $('vidImgWrap').style.display=(vidModeVal==='image')?'block':'none';
 });
+if($('vidImgFile')) $('vidImgFile').onchange=async()=>{
+  const f=$('vidImgFile').files[0]; if(!f) return;
+  try{ let url=await fileToURL(f); url=await resizeDataURL(url,1280); vidImgData=url;
+    const p=$('vidImgPreview'); if(p){ p.src=url; p.style.display=''; }
+    if($('vidStatus')){ $('vidStatus').className='status'; $('vidStatus').textContent='Image ready. Hit Generate to animate it.'; }
+  }catch(e){ if($('vidStatus')){ $('vidStatus').textContent='Could not read that image — '+e.message; } }
+};
 async function higgsCall(payload){
   const r=await fetch(higgsEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   const d=await r.json().catch(()=>({error:'bad response'}));
@@ -995,8 +1008,8 @@ async function runVideo(){
   if(vidPolling) return;
   const prompt=($('vidPrompt').value||'').trim();
   if(!prompt){ $('vidStatus').className='status'; $('vidStatus').textContent='Add a prompt first.'; return; }
-  const mode=vidModeVal, imageUrl=$('vidImgUrl')?($('vidImgUrl').value||'').trim():'';
-  if(mode==='image' && !imageUrl){ $('vidStatus').className='status'; $('vidStatus').textContent='Image mode needs a public image URL.'; return; }
+  const mode=vidModeVal, imageUrl=vidImgData || ($('vidImgUrl')?($('vidImgUrl').value||'').trim():'');
+  if(mode==='image' && !imageUrl){ $('vidStatus').className='status'; $('vidStatus').textContent='Upload an image (or paste a URL) first.'; return; }
   const aspect=$('vidAspect').value, dur=parseInt($('vidDur').value||5);
   $('vidOut').innerHTML=''; $('vidStatus').className='status busy'; $('vidStatus').textContent='Submitting to Higgsfield…';
   vidPolling=true; vidT0=Date.now(); $('vidGenBtn').disabled=true;

@@ -320,17 +320,12 @@ canvas#stage{display:none}
       <div class="head">
         <div class="eyebrow">Motion</div>
         <h1 class="title">Video Generator</h1>
-        <p class="subt">One click turns a prompt — or one of your graphics — into a short, broadcast-quality social video ad, powered by Higgsfield. Pre-loaded with a proven Ruby Vet demo: just hit Generate.</p>
+        <p class="subt">Upload one of your graphics and one click animates it into a short, broadcast-quality social video ad, powered by Higgsfield. The full pipeline: make the image, bring it to life.</p>
       </div>
       <div class="grid2">
         <div class="card">
-          <label class="f">Mode</label>
-          <div class="segwrap" id="vidMode">
-            <button type="button" class="seg on" data-mode="text">🎬 Text → Video</button>
-            <button type="button" class="seg" data-mode="image">🖼️ Image → Video</button>
-          </div>
-          <div id="vidImgWrap" style="display:none">
-            <label class="f">Starting image — upload the graphic to animate</label>
+          <div id="vidImgWrap">
+            <label class="f">Upload the graphic to animate</label>
             <div class="kv" style="align-items:center;gap:12px;margin-bottom:8px">
               <img id="vidImgPreview" style="height:64px;max-width:120px;border-radius:8px;background:rgba(0,0,0,.08);object-fit:cover;display:none" alt="">
               <input id="vidImgFile" type="file" accept="image/*">
@@ -338,7 +333,7 @@ canvas#stage{display:none}
             <label class="f" style="opacity:.65">…or paste a public image URL instead (optional)</label>
             <input id="vidImgUrl" placeholder="https://…/graphic.jpg">
           </div>
-          <label class="f">Prompt (pre-loaded demo — edit it, or just hit Generate)</label>
+          <label class="f">Motion prompt (how it should move — pre-loaded, edit or just Generate)</label>
           <textarea id="vidPrompt" style="min-height:120px"></textarea>
           <div class="kv" style="gap:10px;margin-top:6px">
             <div style="flex:1"><label class="f">Aspect</label><select id="vidAspect"><option value="9:16">9:16 — Reels / TikTok</option><option value="16:9">16:9 — Landscape</option><option value="1:1">1:1 — Square</option></select></div>
@@ -374,6 +369,8 @@ canvas#stage{display:none}
             <label class="f">Locations line</label><input id="bkLocations">
             <label class="f">CTA line 1</label><input id="bkCta1">
             <label class="f">CTA line 2</label><input id="bkCta2">
+            <label class="f" style="margin-top:12px">Call-to-Action instructions — used on every final/CTA slide (booking, address, phone, tagline)</label>
+            <textarea id="bkCtaInfo" style="min-height:120px" placeholder="e.g. Ruby Veterinary Urgent Care — walk-ins welcome, check in online at [URL]. Address: … Phone: … Always end CTA slides with this."></textarea>
           </div>
           <div>
             <label class="f">Navy</label><input id="bkNavy">
@@ -529,13 +526,18 @@ LAYOUT — DO: give words room to breathe; LEFT-ALIGN headlines (centering is ac
 SIGNATURE ELEMENTS: the subject is a cut-out pet photo with a colored torn/rough-edge outline in a brand color that contrasts the background; hand-drawn "expressions" — a rough hand-drawn circle around a key word or a marker underline/swoosh to emphasize words; playful hand-lettered annotations like "Learn more →" or "Swipe here →" with a small curved arrow.
 VOICE: conversational, playful, and warm — but professional and trustworthy. Simple, jargon-free, short and clear. Customer-centric, authentic, a little fun. Speaks to affluent millennial pet parents. Highlights differentiators: fast urgent care, transparency, technology.
 FORMAT: Instagram carousel, portrait 4:5 ratio, final size 1080x1350.`,
+  cta:`CALL-TO-ACTION — every final/CTA slide MUST end with THIS (never a generic "see a vet" or a competitor's wording):
+- Business: Ruby Veterinary Urgent Care — after-hours URGENT CARE for pets. No appointment needed; walk-ins welcome.
+- Primary action: "Check in online" (their online check-in) — reassure that they can walk in and be seen fast, day or night.
+- Voice: warm, reassuring, urgent ("We're here after hours — walk in or check in online").
+- Always include the clinic's real contact so pet parents can act: [FILL IN: address, phone, and online check-in URL].`,
   styleLib: (window.RUBY_VET_STYLES || []),
   gbpLib: (window.RUBY_VET_GBP || [])
 };
 let brandKits = LS.get('vs_brandkits', { 'compare-deals': DEFAULT_CD });
 if(window.COMPARE_DEALS_LOGO) brandKits['compare-deals'].logo = window.COMPARE_DEALS_LOGO; // always use the embedded real logo
 if(!brandKits['ruby-vet']) brandKits['ruby-vet'] = DEFAULT_RUBY; // ensure Ruby Vet exists even on saved kits
-else { const rv=brandKits['ruby-vet']; rv.colors=DEFAULT_RUBY.colors; rv.guidelines=DEFAULT_RUBY.guidelines; rv.styleLib=DEFAULT_RUBY.styleLib; rv.gbpLib=DEFAULT_RUBY.gbpLib; if(!rv.logo) rv.logo=DEFAULT_RUBY.logo; } // refresh code-defined brand assets; keep an uploaded logo if present
+else { const rv=brandKits['ruby-vet']; rv.colors=DEFAULT_RUBY.colors; rv.guidelines=DEFAULT_RUBY.guidelines; rv.styleLib=DEFAULT_RUBY.styleLib; rv.gbpLib=DEFAULT_RUBY.gbpLib; if(!rv.cta) rv.cta=DEFAULT_RUBY.cta; if(!rv.logo) rv.logo=DEFAULT_RUBY.logo; } // refresh code-defined brand assets; keep an uploaded logo + edited CTA if present
 function saveKits(){ LS.set('vs_brandkits', brandKits); }
 // Client dropdown order — Ruby Vet is the default (first) option
 function kitEntries(){ const p='ruby-vet'; const hide=['compare-deals']; /* hidden for the Ruby Vet demo — remove from this array to show it again */ return [p, ...Object.keys(brandKits).filter(k=>k!==p)].filter(k=>brandKits[k] && !hide.includes(k)).map(k=>[k, brandKits[k]]); }
@@ -786,7 +788,7 @@ function renderBatchItems(){
 let generated=[];
 function activeBrand(){ return brandKits[$('clientSel').value] || brandKits['ruby-vet']; }
 // Brand kit sent to Claude so every prompt is on-brand + precise
-function brandPayload(styleOverride){ const b=activeBrand()||{}; const st=(styleOverride!==undefined)?styleOverride:selectedStyle; return { name:b.name||'', colors:b.colors||[], guidelines:b.guidelines||'', style: (st && st.bg) ? {label:st.label,bg:st.bg,text:st.text,accent:st.accent} : null }; }
+function brandPayload(styleOverride){ const b=activeBrand()||{}; const st=(styleOverride!==undefined)?styleOverride:selectedStyle; return { name:b.name||'', colors:b.colors||[], guidelines:b.guidelines||'', cta:b.cta||'', style: (st && st.bg) ? {label:st.label,bg:st.bg,text:st.text,accent:st.accent} : null }; }
 // Resize a data URL to exact WxH (e.g. 1080x1350 for Instagram carousels)
 async function resizeTo(url,w,h){ const img=await loadImg(url); const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h); return c.toDataURL('image/png'); }
 
@@ -980,8 +982,8 @@ if($('histDlAll'))$('histDlAll').onclick=historyDownloadAll;
 if($('histClear'))$('histClear').onclick=historyClear;
 
 /* ---------- VIDEO GENERATOR (Higgsfield) ---------- */
-const VIDEO_DEMO_PROMPT="Warm, cinematic vertical social ad for a veterinary urgent care clinic. A happy golden retriever is gently examined by a friendly, smiling vet in a bright, modern clinic. Soft natural light, reassuring and hopeful mood, subtle slow camera push-in, clean premium look. Warm cream tones with deep ruby-red accents.";
-let vidModeVal='text', vidPolling=false, vidT0=0;
+const VIDEO_DEMO_PROMPT="Bring the graphic to life with subtle, natural motion — a slow cinematic camera push-in, soft shifting light, and gentle movement in the subject. Keep it warm, premium, and on-brand.";
+let vidModeVal='image', vidPolling=false, vidT0=0;
 function higgsEndpoint(){ return LS.get('vs_higgs_endpoint','https://creative-os-api.vercel.app/api/higgsfield-video'); }
 let vidImgData='';
 if($('vidPrompt')) $('vidPrompt').value=VIDEO_DEMO_PROMPT;
@@ -1046,7 +1048,7 @@ $('clearBtn').onclick=()=>{generated=[];$('previewGrid').innerHTML='';$('status'
 /* Brand kit form */
 function loadKitForm(){
   const b=brandKits['ruby-vet'];
-  $('bkOffer').value=b.offer;$('bkLocations').value=b.locations;$('bkCta1').value=b.cta1;$('bkCta2').value=b.cta2;
+  $('bkOffer').value=b.offer;$('bkLocations').value=b.locations;$('bkCta1').value=b.cta1;$('bkCta2').value=b.cta2;if($('bkCtaInfo'))$('bkCtaInfo').value=b.cta||'';
   $('bkNavy').value=b.navy;$('bkYellow').value=b.yellow;$('bkBlue').value=b.blue;
   const lg=$('bkLogo'); if(b.logo){lg.src=b.logo;lg.style.display='';}else{lg.style.display='none';}
   renderBrandStyleLib();
@@ -1083,7 +1085,7 @@ $('bkLogoInput').onchange=async()=>{
 };
 $('bkSave').onclick=()=>{
   const b=brandKits['ruby-vet'];
-  b.offer=$('bkOffer').value;b.locations=$('bkLocations').value;b.cta1=$('bkCta1').value;b.cta2=$('bkCta2').value;
+  b.offer=$('bkOffer').value;b.locations=$('bkLocations').value;b.cta1=$('bkCta1').value;b.cta2=$('bkCta2').value;if($('bkCtaInfo'))b.cta=$('bkCtaInfo').value;
   b.navy=$('bkNavy').value;b.yellow=$('bkYellow').value;b.blue=$('bkBlue').value;
   saveKits(); fillClients(); $('bkSave').textContent='Saved ✓'; setTimeout(()=>$('bkSave').textContent='Save Brand Kit',1200);
 };

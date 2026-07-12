@@ -778,6 +778,7 @@ async function runCarousel(){
         generated.push({fn,dataURL:durl}); addPreview(fn,durl);
       }
       plans.push('▸ '+noun+' '+(k+1)+(it.style?(' ['+esc(it.style.label)+']'):'')+': '+list.map(p=>esc(p.headline||'')).join('  ·  '));
+      if(r && r.partial){ plans.push('⚠️ '+noun+' '+(k+1)+' — '+list.length+'/'+pages+' pages saved; the rest stopped ('+(/MODERATION/i.test(r.pageError||'')?'OpenAI blocked a page — reword that topic to be less clinical':esc((r.pageError||'').slice(0,90)))+'). No pages were wasted.'); }
       await new Promise(r=>setTimeout(r,0));
     }
     if($('smartPromptOut')){ $('smartPromptOut').style.display='block'; $('smartPromptOut').innerHTML='<b>📦 Batch plan — '+items.length+' '+noun+(items.length>1?'s':'')+'</b>'+plans.join('\n'); }

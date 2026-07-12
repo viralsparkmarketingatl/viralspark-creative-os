@@ -760,12 +760,12 @@ async function runCarousel(){
           const retryable=/RATE_LIMIT|rate limit|Failed to fetch|429|network/i.test(msg);
           if(attempt<2 && retryable){
             for(let s=60;s>0;s--){
-              $('status').className='status busy'; $('status').textContent=noun+' '+(k+1)+' of '+items.length+' — OpenAI limit hit (5 images/min on your tier). Cooling down '+s+'s, then retrying… ('+(attempt+1)+'/2)';
+              $('status').className='status busy'; $('status').textContent=noun+' '+(k+1)+' of '+items.length+' — OpenAI rate limit — cooling down '+s+'s, then retrying… ('+(attempt+1)+'/2)';
               await new Promise(res=>setTimeout(res,1000));
             }
             continue;
           }
-          if(/RATE_LIMIT|rate limit|429/i.test(msg)){ throw new Error('OpenAI rate limit (5 images/min). Try a smaller batch (1–2 carousels), wait a couple minutes, or raise your OpenAI usage tier for big runs.'); }
+          if(/RATE_LIMIT|rate limit|429/i.test(msg)){ throw new Error('OpenAI rate limit. Wait ~30–60s and re-run, or run a slightly smaller batch.'); }
           throw e;
         }
       }

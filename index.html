@@ -797,7 +797,11 @@ async function buildHeadlineSets(count){
   const out=[]; for(let i=0;i<count;i++){const p=MATTRESS_PRESETS[i%MATTRESS_PRESETS.length];out.push({eyebrow:p.e,subline:p.s,accent:p.a,bar:p.bar});} return out;
 }
 
+let isGenerating=false;
 async function generate(){
+  if(isGenerating) return; // guard: prevents a double-click launching two overlapping batches (duplicate carousels)
+  isGenerating=true; if($('genBtn'))$('genBtn').disabled=true;
+  try{
   const mode=$('imgMode').value;
   const fmt=curFormat();
   await document.fonts.ready;
@@ -851,6 +855,7 @@ async function generate(){
     await new Promise(r=>setTimeout(r,0));
   }
   $('status').className='status'; $('status').textContent='Done — '+generated.length+' graphics ready. Click a card to download, or Download All.';
+  } finally { isGenerating=false; if($('genBtn'))$('genBtn').disabled=false; }
 }
 function addPreview(fn,url){
   const d=document.createElement('div');d.className='pcard';

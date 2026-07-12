@@ -10,7 +10,11 @@ const PLAN_SYSTEM =
 Structure:
 - Page 1 = the HOOK / intro — a scroll-stopping title page in the EXACT style of the reference (same layout, colors, fonts, logo, subject treatment).
 - Middle pages = the VALUE — the actual tips / causes / steps from the blog, ONE clear idea per page, same brand style.
-- Last page = the WRAP-UP / CTA — a closing page (short recap + a clear call to action such as "Book an appointment" or "See a vet").
+- Last page = the WRAP-UP / CTA — a closing page (short recap + the brand's OWN call to action). If a CALL-TO-ACTION is provided in the brand kit below, the final page MUST use THAT exact call to action (the brand's real booking/action, address, phone, tagline). NEVER invent a generic CTA like "see a vet" and NEVER copy a CTA from the source blog/topic (it may belong to a different company). The topic/blog is only for the informational content — the CTA always belongs to this brand.
+
+IF N = 1: ignore the multi-page structure above. Instead design ONE complete, self-contained standalone post — a full graphic with a strong headline, brief supporting copy, the key visual/subject, and a clear CTA — all in the exact brand style of the reference.
+
+IMAGERY SAFETY (critical — OpenAI will REJECT graphic images): NEVER depict blood, feces/stool, vomit, wounds, injuries, surgery, or any graphic/medical imagery on ANY page, even when the topic is medical. The photo subject is ALWAYS a calm, healthy, appealing pet (or a clean, friendly clinic scene). Keep all medical specifics in the TEXT/headline only — the imagery stays gentle, positive, and brand-safe. (e.g. topic "blood in cat stool" → show a healthy, content cat, with the concern conveyed by words, not visuals.)
 
 You may also be given a BRAND KIT (exact hex colors + brand rules/voice/layout do's and don'ts). When present, EVERY page's edit prompt MUST use those EXACT hex colors, obey the layout do's/don'ts (e.g. left-align headlines, never right-align, keep white space), match the voice, and reproduce the brand's signature elements. All pages are PORTRAIT 4:5 vertical Instagram format — state "portrait 4:5 vertical Instagram layout" in each prompt.
 
@@ -35,7 +39,7 @@ function stripHtml(html) {
     .replace(/\s+/g, ' ').trim();
 }
 
-async function genImage(prompt, refImages, size, quality, oKey) {
+function buildEditForm(prompt, refImages, size, quality) {
   const form = new FormData();
   form.append('model', 'gpt-image-2');
   form.append('prompt', prompt);
@@ -47,14 +51,37 @@ async function genImage(prompt, refImages, size, quality, oKey) {
     const ext = p.media.includes('jpeg') ? 'jpg' : (p.media.includes('webp') ? 'webp' : 'png');
     form.append('image[]', new Blob([buf], { type: p.media }), 'reference' + idx + '.' + ext);
   });
-  const r = await fetch('https://api.openai.com/v1/images/edits', {
-    method: 'POST', headers: { Authorization: 'Bearer ' + oKey }, body: form
-  });
-  if (!r.ok) { const t = await r.text(); throw new Error('gpt-image-2 render failed: ' + t.slice(0, 200)); }
-  const d = await r.json();
-  const b64 = d && d.data && d.data[0] && d.data[0].b64_json;
-  if (!b64) throw new Error('no image returned');
-  return b64;
+  return form;
+}
+
+// Renders one image, briefly retrying on 429 rate limits — but ALWAYS returns before the
+// serverless time limit (so the client never sees a "Failed to fetch" timeout). If it can't
+// finish in budget it throws RATE_LIMIT, and the front-end retries that whole carousel later.
+async function genImage(prompt, refImages, size, quality, oKey) {
+  const deadline = Date.now() + 90000; // fail fast & return quickly; the front-end owns the longer pacing
+  let lastErr = '';
+  for (let attempt = 0; ; attempt++) {
+    const r = await fetch('https://api.openai.com/v1/images/edits', {
+      method: 'POST', headers: { Authorization: 'Bearer ' + oKey },
+      body: buildEditForm(prompt, refImages, size, quality)
+    });
+    if (r.ok) {
+      const d = await r.json();
+      const b64 = d && d.data && d.data[0] && d.data[0].b64_json;
+      if (!b64) throw new Error('no image returned');
+      return b64;
+    }
+    const t = await r.text();
+    lastErr = t.slice(0, 300);
+    if (r.status !== 429) {
+      if (/moderation_blocked|safety system|content_policy/i.test(lastErr))
+        throw new Error('MODERATION_BLOCKED: OpenAI blocked this image for graphic/medical content. Soften the visual — avoid depicting blood, stool, vomit, wounds or injuries; describe a calm pet instead.');
+      throw new Error('gpt-image-2 render failed: ' + lastErr);
+    }
+    const waitMs = 12000; // one short in-call retry to smooth over a brief spike
+    if (Date.now() + waitMs + 25000 > deadline) throw new Error('RATE_LIMIT'); // bail fast; front-end paces & retries
+    await new Promise(res => setTimeout(res, waitMs));
+  }
 }
 
 module.exports = async function handler(req, res) {
@@ -80,7 +107,8 @@ module.exports = async function handler(req, res) {
     const brandBlock = (brand.name ? ('BRAND: ' + brand.name + '\n') : '')
       + styleLine
       + (colorsLine ? ('FULL BRAND PALETTE (for reference): ' + colorsLine + '\n') : '')
-      + (brand.guidelines ? ('BRAND GUIDELINES:\n' + brand.guidelines) : '');
+      + (brand.guidelines ? ('BRAND GUIDELINES:\n' + brand.guidelines) : '')
+      + (brand.cta ? ('\n\nBRAND CALL-TO-ACTION (use on the final/CTA page EXACTLY — overrides any CTA from the source topic/blog):\n' + brand.cta) : '');
     const size = body.size || '1024x768';
     const quality = body.quality || 'high';
     let pages = parseInt(body.pages, 10); if (!pages || pages < 2) pages = 3; if (pages > 6) pages = 6;
@@ -130,13 +158,26 @@ module.exports = async function handler(req, res) {
     }
     if (!Array.isArray(plan) || !plan.length) return res.status(502).json({ error: 'Empty carousel plan.' });
 
-    // ---------- STEP 2: render every page IN PARALLEL ----------
-    const results = await Promise.all(plan.map(async (pg, idx) => {
-      const b64 = await genImage(pg.prompt, refImages, size, quality, oKey);
-      return { page: pg.page || idx + 1, role: pg.role || '', headline: pg.headline || '', prompt: pg.prompt || '', b64 };
-    }));
-
-    return res.status(200).json({ pages: results });
+    // ---------- STEP 2: render pages SEQUENTIALLY, KEEPING every page that succeeds ----------
+    // Never discard already-billed pages: if a later page fails, return what we have (partial) instead of
+    // throwing it all away and re-charging on retry. This is the anti-money-waste guarantee.
+    const results = [];
+    let pageError = '';
+    for (let idx = 0; idx < plan.length; idx++) {
+      const pg = plan[idx];
+      try {
+        const b64 = await genImage(pg.prompt, refImages, size, quality, oKey);
+        results.push({ page: pg.page || idx + 1, role: pg.role || '', headline: pg.headline || '', prompt: pg.prompt || '', b64 });
+      } catch (e) {
+        pageError = e.message || 'render failed';
+        break; // keep everything rendered so far; stop this carousel here
+      }
+    }
+    if (!results.length) {
+      // nothing rendered — a 429 here means NO image was billed, so it's safe for the client to retry
+      return res.status(502).json({ error: pageError || 'no pages rendered' });
+    }
+    return res.status(200).json({ pages: results, partial: results.length < plan.length, pageError: results.length < plan.length ? pageError : '' });
   } catch (e) {
     return res.status(500).json({ error: e.message || 'server error' });
   }

@@ -771,7 +771,7 @@ const SCENE_DESCS=[
  'A cozy plush mattress with layered pillows in a warm, inviting bedroom display'
 ];
 function getEndpoint(){ return LS.get('vs_image_endpoint',''); }
-let styleRefs = window.RUBY_VET_REF ? [window.RUBY_VET_REF] : (window.CD_STYLE_REF ? [window.CD_STYLE_REF] : []);
+let styleRefs = []; // clean slate by default — populated when a brand is selected, or by the user's own uploads
 let selectedStyle = null; // the chosen brand style {label,bg,text,accent,url} from the client's styleLib
 // Output formats — gen = a valid gpt-image-2 size (edges ×16) at the target aspect; w/h = exact final size we resize to
 const FORMATS = {
@@ -901,7 +901,8 @@ function renderBatchItems(){
 
 /* ---------- GENERATE FLOW ---------- */
 let generated=[];
-function activeBrand(){ return brandKits[$('clientSel').value] || brandKits['ruby-vet']; }
+const BLANK_BRAND = { name:'', colors:[], guidelines:'', cta:'', logo:'', styleLib:[], gbpLib:[] };
+function activeBrand(){ const v=$('clientSel')?$('clientSel').value:''; if(v==='__none__'||!v) return BLANK_BRAND; return brandKits[v] || BLANK_BRAND; }
 // Brand kit sent to Claude so every prompt is on-brand + precise
 function brandPayload(styleOverride){ const b=activeBrand()||{}; const st=(styleOverride!==undefined)?styleOverride:selectedStyle; return { name:b.name||'', colors:b.colors||[], guidelines:b.guidelines||'', cta:b.cta||'', style: (st && st.bg) ? {label:st.label,bg:st.bg,text:st.text,accent:st.accent} : null }; }
 // Resize a data URL to exact WxH (e.g. 1080x1350 for Instagram carousels)
@@ -1044,7 +1045,11 @@ document.querySelectorAll('.navbtn[data-screen]').forEach(b=>b.onclick=()=>{
 
 /* ---------- INIT UI ---------- */
 function fillClients(){
-  $('clientSel').innerHTML=kitEntries().map(([k,v])=>`<option value="${k}">${v.name}</option>`).join('');
+  const cur=$('clientSel').value;
+  $('clientSel').innerHTML='<option value="__none__">— No brand · clean slate —</option>'
+    +kitEntries().map(([k,v])=>`<option value="${k}">${v.name}</option>`).join('');
+  if(cur && [...$('clientSel').options].some(o=>o.value===cur)) $('clientSel').value=cur;
+  else $('clientSel').value='__none__'; // default = clean slate
 }
 fillClients();
 
@@ -1081,7 +1086,7 @@ $('styleSel').onchange=()=>{
   else { const s=lib[parseInt(v,10)]; if(s){ selectedStyle=s; styleRefs=[s.url]; } }
   renderStyleThumbs();
 };
-$('clientSel').onchange=()=>{ fillStyles(); renderBatchItems(); };
+$('clientSel').onchange=()=>{ if($('clientSel').value==='__none__'){ styleRefs=[]; selectedStyle=null; } fillStyles(); renderBatchItems(); };
 fillStyles();
 $('imgMode').onchange(); // set initial visibility (default = reference mode)
 $('fmtSel').onchange=()=>{

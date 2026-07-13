@@ -566,7 +566,27 @@ const DEFAULT_CD = {
   offer:'60-70%',
   locations:'LAWRENCEVILLE, GA   |   MORROW, GA',
   cta1:'SHOP MORE.', cta2:'SAVE MORE.',
-  logo: window.COMPARE_DEALS_LOGO || ''
+  colors:[
+    {name:'Cobalt Blue', hex:'#1C63C6'},
+    {name:'Navy',        hex:'#0A2547'},
+    {name:'Yellow',      hex:'#FDC21C'},
+    {name:'White',       hex:'#FFFFFF'}
+  ],
+  guidelines:`COMPARE DEALS — BRAND GUIDELINES (follow exactly).
+BUSINESS: Compare Deals — discount appliance + mattress OUTLET (sub-brands "CD Appliances" and "CD Mattresses"). New + scratch-and-dent top-brand appliances and mattresses at outlet prices. TWO locations: Lawrenceville (134 South Clayton Street, Lawrenceville, GA 30046) and Morrow (1395 Southlake Parkway, Morrow, GA 30260). Core promise "Save up to 60-70% off retail." "Top brands. Outlet prices." Financing available (0% down; terms vary).
+COLORS (use these EXACT hex only): Cobalt Blue #1C63C6 (primary brand), Navy #0A2547 (dark backgrounds + headline text), Yellow #FDC21C (SIGNATURE accent — the big "60-70%", eyebrow tags, CTA pills, key words), White #FFFFFF. High-contrast, bold, high-energy retail. Backgrounds are usually blue, navy, yellow, or white; pair for maximum contrast (white/yellow text on blue/navy; navy/blue text on yellow/white).
+TYPOGRAPHY: Display = heavy, bold, slightly ITALIC condensed sans-serif for big impactful ALL-CAPS retail headlines (flyer/sale energy). Body/labels = clean bold sans. SIGNATURE: giant "60-70%" number with the "%" in a contrasting brand color; two-tone headlines (e.g. white + yellow).
+LAYOUT — DO: a yellow/blue "eyebrow" sale tag at top ("APPLIANCE SALE!", "MATTRESS SALE!", "OUTLET FIND!", "SHOP LOCAL!"); one big headline; a real appliance/mattress photo; a 3–4 icon trust row (Outlet Prices · Quality You Trust · Delivery Available · Financing Available); the CD logo bottom-left; a yellow "Shop More. Save More." CTA pill; a locations line. DON'T: crowd; use low contrast; cover the logo or the product.
+SIGNATURE ELEMENTS: yellow eyebrow/sale banners, circular trust icons, yellow underlines, the "COMPARE DEALS · CD APPLIANCES/MATTRESSES" logo, and a "2 Convenient Locations" line with a pin.
+VOICE: High-energy, savings-first, benefit-driven, urgent but trustworthy. Lead with the deal ("Same quality. Huge savings.", "Save up to 60-70% off retail", "Pay over time. 0% down"). Speak to value shoppers furnishing a home. Short, punchy, confident.
+FORMAT: Instagram carousel / social portrait, 1080x1350.`,
+  cta:`CALL-TO-ACTION — every final/CTA slide MUST use THIS:
+- Primary CTAs (rotate to fit): "Shop More. Save More." · "Check Today's Inventory" · "Get a Quote" · "Ask About Financing."
+- TWO locations: Lawrenceville — 134 South Clayton Street, Lawrenceville, GA 30046 · Morrow — 1395 Southlake Parkway, Morrow, GA 30260.
+- Always include "2 Convenient Locations: Lawrenceville, GA | Morrow, GA" and the "Save up to 60-70% off retail" value line. Put the CTA in a yellow pill.`,
+  logo:(window.CD_LOGO || window.COMPARE_DEALS_LOGO || ''),
+  styleLib:(window.CD_STYLES || []),
+  gbpLib:[]
 };
 const DEFAULT_RUBY = {
   name:'Ruby Vet',
@@ -657,7 +677,8 @@ FORMAT: Instagram carousel / social portrait, 1080x1350.`,
   gbpLib:[]
 };
 let brandKits = LS.get('vs_brandkits', { 'compare-deals': DEFAULT_CD });
-if(window.COMPARE_DEALS_LOGO) brandKits['compare-deals'].logo = window.COMPARE_DEALS_LOGO; // always use the embedded real logo
+if(!brandKits['compare-deals']) brandKits['compare-deals'] = DEFAULT_CD;
+else { const cd=brandKits['compare-deals']; cd.colors=DEFAULT_CD.colors; cd.guidelines=DEFAULT_CD.guidelines; cd.cta=DEFAULT_CD.cta; cd.styleLib=DEFAULT_CD.styleLib; cd.gbpLib=DEFAULT_CD.gbpLib; cd.logo=DEFAULT_CD.logo; } // upgrade Compare Deals to the full kit
 if(!brandKits['ruby-vet']) brandKits['ruby-vet'] = DEFAULT_RUBY; // ensure Ruby Vet exists even on saved kits
 else { const rv=brandKits['ruby-vet']; rv.colors=DEFAULT_RUBY.colors; rv.guidelines=DEFAULT_RUBY.guidelines; rv.styleLib=DEFAULT_RUBY.styleLib; rv.gbpLib=DEFAULT_RUBY.gbpLib; if(!rv.cta) rv.cta=DEFAULT_RUBY.cta; if(!rv.logo) rv.logo=DEFAULT_RUBY.logo; } // refresh code-defined brand assets; keep an uploaded logo + edited CTA if present
 if(!brandKits['diaz-motorcycles']) brandKits['diaz-motorcycles'] = DEFAULT_DIAZ; // Diaz baked in
@@ -666,7 +687,7 @@ if(!brandKits['innovative-fitness']) brandKits['innovative-fitness'] = DEFAULT_I
 else { const inf=brandKits['innovative-fitness']; inf.colors=DEFAULT_INNO.colors; inf.guidelines=DEFAULT_INNO.guidelines; inf.cta=DEFAULT_INNO.cta; inf.styleLib=DEFAULT_INNO.styleLib; if(!inf.logo) inf.logo=DEFAULT_INNO.logo; } // refresh code-defined assets; keep uploaded logo
 function saveKits(){ LS.set('vs_brandkits', brandKits); }
 // Client dropdown order — Ruby Vet is the default (first) option
-function kitEntries(){ const p='ruby-vet'; const hide=['compare-deals']; /* hidden for the Ruby Vet demo — remove from this array to show it again */ return [p, ...Object.keys(brandKits).filter(k=>k!==p)].filter(k=>brandKits[k] && !hide.includes(k)).map(k=>[k, brandKits[k]]); }
+function kitEntries(){ const p='ruby-vet'; const hide=[]; return [p, ...Object.keys(brandKits).filter(k=>k!==p)].filter(k=>brandKits[k] && !hide.includes(k)).map(k=>[k, brandKits[k]]); }
 
 /* ---------- BUILT-IN HEADLINE SETS (no AI needed) ---------- */
 const MATTRESS_PRESETS = [

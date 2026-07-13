@@ -364,6 +364,13 @@ canvas#stage{display:none}
           <input id="sgPdf" type="file" accept="application/pdf">
           <div id="sgPdfName" class="hint" style="margin-top:4px"></div>
 
+          <label class="f" style="margin-top:14px">Client logo — placed on every poster (transparent PNG best)</label>
+          <div class="kv" style="align-items:center;gap:12px">
+            <img id="sgLogoPreview" style="height:44px;max-width:150px;background:rgba(0,0,0,.08);padding:5px;border-radius:8px;display:none" alt="">
+            <input id="sgLogo" type="file" accept="image/*">
+          </div>
+          <div class="hint" style="margin-top:2px">Auto-filled from the selected client's Brand Kit — upload here to override.</div>
+
           <label class="f" style="margin-top:14px">Inspiration images (up to 8 — GPT Image 2 draws from + can mask these)</label>
           <input id="sgRefs" type="file" accept="image/*" multiple>
           <div id="sgRefThumbs" class="kv" style="flex-wrap:wrap;gap:8px;margin-top:8px"></div>
@@ -1000,6 +1007,7 @@ document.querySelectorAll('.navbtn[data-screen]').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
   $('screen-'+b.dataset.screen).classList.add('on');
   if(b.dataset.screen==='history') loadHistory();
+  if(b.dataset.screen==='stylegen' && typeof sgPrefill==='function') sgPrefill();
 });
 
 /* ---------- INIT UI ---------- */
@@ -1126,15 +1134,34 @@ function finishVideo(url){
 if($('vidGenBtn')) $('vidGenBtn').onclick=runVideo;
 
 /* ---------- STYLE REFERENCE GENERATOR ---------- */
-let sgPdfData='', sgRefsData=[], sgBusy=false;
+let sgPdfData='', sgRefsData=[], sgLogoData='', sgLogoOverride=false, sgBusy=false;
 function sgEndpoint(){ return LS.get('vs_stylegen_endpoint','https://creative-os-api.vercel.app/api/brandkit-styles'); }
+function sgPrefill(){
+  // logo from the active client's kit (unless the user uploaded one)
+  if(!sgLogoOverride){ let lg=''; try{ lg=(activeBrand()&&activeBrand().logo)||''; }catch(e){}
+    sgLogoData=lg; const p=$('sgLogoPreview'); if(p){ if(lg){p.src=lg;p.style.display='';}else{p.style.display='none';} } }
+  // brand details from the active client's kit (only if the box is empty) — so a heavy PDF usually isn't needed
+  const bt=$('sgBrandText');
+  if(bt && !bt.value.trim()){ try{ const b=activeBrand()||{}; let s='';
+    if(b.name) s+=b.name+'\n';
+    if(b.colors&&b.colors.length) s+='Colors: '+b.colors.map(c=>((c.name||'')+' '+(c.hex||'')).trim()).join(', ')+'\n';
+    if(b.cta) s+='CTA: '+b.cta+'\n';
+    if(b.guidelines) s+='\n'+b.guidelines;
+    bt.value=s.trim(); }catch(e){} }
+}
+if($('sgLogo')) $('sgLogo').onchange=async()=>{
+  const f=$('sgLogo').files[0]; if(!f) return;
+  let url=await fileToURL(f); url=await resizeDataURL(url,600);
+  sgLogoData=url; sgLogoOverride=true;
+  const p=$('sgLogoPreview'); if(p){ p.src=url; p.style.display=''; }
+};
 if($('sgPdf')) $('sgPdf').onchange=async()=>{
   const f=$('sgPdf').files[0]; if(!f){ sgPdfData=''; if($('sgPdfName'))$('sgPdfName').textContent=''; return; }
   sgPdfData=await fileToURL(f); if($('sgPdfName'))$('sgPdfName').textContent='✓ '+f.name;
 };
 if($('sgRefs')) $('sgRefs').onchange=async()=>{
   const fls=Array.from($('sgRefs').files||[]).slice(0,8); sgRefsData=[];
-  for(const f of fls){ let url=await fileToURL(f); url=await resizeDataURL(url,1024); sgRefsData.push(url); }
+  for(const f of fls){ let url=await fileToURL(f); url=await resizeDataURL(url,768); sgRefsData.push(url); }
   const c=$('sgRefThumbs'); if(c) c.innerHTML=sgRefsData.map(u=>'<img src="'+u+'" style="height:54px;width:54px;object-fit:cover;border-radius:8px;border:1px solid var(--vs-line)">').join('');
 };
 async function runStyleGen(){
@@ -1142,10 +1169,14 @@ async function runStyleGen(){
   const brandText=($('sgBrandText').value||'').trim();
   if(!sgPdfData && !brandText && !sgRefsData.length){ $('sgStatus').className='status'; $('sgStatus').textContent='Add a brand-kit PDF, some brand details, or inspiration images first.'; return; }
   const count=parseInt($('sgCount').value||8), extra=($('sgExtra').value||'').trim();
+  const logoNow=sgLogoData||((activeBrand()&&activeBrand().logo)||'');
+  const approxMB=(((sgPdfData||'').length)+((logoNow||'').length)+sgRefsData.reduce((n,u)=>n+u.length,0))/1048576;
+  if(approxMB>3.9){ $('sgStatus').className='status'; $('sgStatus').textContent='Too much to upload ('+approxMB.toFixed(1)+'MB, limit ~4MB). Your brand details are already filled in below, so you can REMOVE the PDF — or use a smaller PDF / fewer inspiration images.'; return; }
   sgBusy=true; $('sgGenBtn').disabled=true;
   $('sgGrid').innerHTML=''; $('sgStatus').className='status busy'; $('sgStatus').textContent='Reading the brand kit + designing '+count+' world-class posters… (a couple minutes)';
   try{
-    const r=await fetch(sgEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pdf:sgPdfData,brandText:brandText,refImages:sgRefsData,count:count,extra:extra,quality:'high',size:'1024x1536'})});
+    const logo=sgLogoData||((activeBrand()&&activeBrand().logo)||'');
+    const r=await fetch(sgEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pdf:sgPdfData,brandText:brandText,logo:logo,refImages:sgRefsData,count:count,extra:extra,quality:'high',size:'1024x1536'})});
     const d=await r.json();
     if(!r.ok||!d.images){ throw new Error(d.error||'generation failed'); }
     let client=''; try{ client=activeBrand().name||''; }catch(e){}

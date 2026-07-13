@@ -676,6 +676,64 @@ FORMAT: Instagram carousel / social portrait, 1080x1350.`,
   styleLib:(window.INNO_STYLES || []),
   gbpLib:[]
 };
+const DEFAULT_PRIMETIME = {
+  name:'Primetime Pools',
+  colors:[
+    {name:'Carolina Blue', hex:'#4B9CD3'},
+    {name:'Deep Blue',     hex:'#2E7FB5'},
+    {name:'Navy',          hex:'#0A1828'},
+    {name:'Ink Navy',      hex:'#0D1B2A'},
+    {name:'Slate',         hex:'#3A4A5C'},
+    {name:'Cool Gray',     hex:'#7A8696'},
+    {name:'Light Blue',    hex:'#EDF4FB'},
+    {name:'White',         hex:'#FFFFFF'}
+  ],
+  guidelines:`PRIMETIME POOLS GA — BRAND GUIDELINES (follow exactly).
+BUSINESS: Primetime Pools GA — luxury custom pools and complete backyard experiences (design + build) for Metro Atlanta and North Georgia (HQ Snellville). Premium, high-end, aspirational. Tagline "Your backyard. Built for prime time." Primary CTA "Plan Your Pool."
+COLORS (use these EXACT hex only): Carolina Blue #4B9CD3 (primary accent / highlighted words), Deep Blue #2E7FB5 (secondary blue), Navy #0A1828 & Ink Navy #0D1B2A (primary dark backgrounds + headline text), Slate #3A4A5C, Cool Gray #7A8696 (secondary text), Light Blue #EDF4FB (light panels), White #FFFFFF. Elegant, calm, PREMIUM — deep navy grounds with clean white type and Carolina-blue accent words; lots of negative space (this is luxury, NOT loud retail).
+TYPOGRAPHY: Display = Cinzel (elegant high-contrast serif, ALL-CAPS headlines). Accent/lead = Cormorant Garamond (italic serif for elegant lead lines). Labels/eyebrows = Instrument Sans (uppercase, letter-spaced). Body = Outfit (clean sans). SIGNATURE: accent ONE key word in Carolina blue within an otherwise white/navy headline; thin hairline rules and refined icon rows.
+LAYOUT — DO: cinematic pool/backyard photography (twilight, water, fire, lighting); a Cinzel headline with one blue accent word; generous negative space; a refined 3-icon feature row; the Primetime wave logo; a slim eyebrow tag; "Serving Metro Atlanta" + phone in the footer. DON'T: clutter; loud sale-flyer energy; low-contrast type over busy water.
+SIGNATURE ELEMENTS: the Primetime Pools circular blue wave logo, thin hairline dividers, uppercase letter-spaced eyebrow labels, elegant icon trios, twilight pool imagery.
+VOICE: Refined, confident, aspirational but warm. Sell the FEELING of the backyard, the craft, and the design intelligence. Upscale but approachable; never gimmicky or discount-y.
+FORMAT: Instagram carousel / social portrait, 1080x1350.`,
+  cta:`CALL-TO-ACTION — every final/CTA slide MUST use THIS:
+- Primary CTA: "Plan Your Pool" (design consultation). Also fits: "Book a Consultation."
+- Business: Primetime Pools GA — Serving Metro Atlanta & North Georgia.
+- Phone (678) 507-4216 · primetimepoolsllc@gmail.com · Tagline "Your backyard. Built for prime time." Keep it elegant and premium.`,
+  offer:'', locations:'Serving Metro Atlanta & North Georgia', cta1:'Plan Your Pool', cta2:'(678) 507-4216',
+  logo:(window.PRIMETIME_LOGO || ''),
+  styleLib:(window.PRIMETIME_STYLES || []),
+  gbpLib:[]
+};
+const DEFAULT_KAIZEN = {
+  name:'Kaizenscapes',
+  colors:[
+    {name:'Carolina Blue', hex:'#4B9CD3'},
+    {name:'Steel Blue',    hex:'#2E7FB5'},
+    {name:'Navy',          hex:'#0A1828'},
+    {name:'Ink',           hex:'#080C0F'},
+    {name:'Slate',         hex:'#3A4A5C'},
+    {name:'Cool Gray',     hex:'#7A8696'},
+    {name:'Light Blue',    hex:'#EDF4FB'},
+    {name:'White',         hex:'#FFFFFF'}
+  ],
+  guidelines:`KAIZENSCAPES — BRAND GUIDELINES (follow exactly).
+BUSINESS: Kaizenscapes — premium landscape DESIGN + BUILD: hardscape (pavers, pool decks, retaining walls), outdoor living spaces, landscape lighting, and custom pools/backyards. Serving Metro Atlanta & North Georgia. Aspirational, high-end, craft-focused. Tagline "Thoughtful design. Lasting impressions." (also "Lasting beauty").
+COLORS (use these EXACT hex only): Carolina Blue #4B9CD3 (primary accent / highlighted words), Steel Blue #2E7FB5 (secondary), Navy #0A1828 (primary dark background + headline text), Ink #080C0F (darkest ground), Slate #3A4A5C, Cool Gray #7A8696 (secondary text), Light Blue #EDF4FB (light panels), White #FFFFFF. Elegant, calm, PREMIUM — deep navy/black grounds with clean white type and ONE Carolina-blue accent word; lots of negative space (luxury, not loud).
+TYPOGRAPHY: Display = Cinzel (elegant high-contrast serif, ALL-CAPS headlines). Accent/lead = Cormorant Garamond (italic serif lead lines). Labels/eyebrows = Instrument Sans (uppercase, letter-spaced — e.g. "THOUGHTFUL DESIGN · LASTING IMPRESSIONS"). Body = Outfit. SIGNATURE: accent ONE key word in Carolina blue within a white/navy headline; thin hairline rules; refined icon trios.
+LAYOUT — DO: cinematic hardscape / outdoor-living / pool photography (twilight, stone, water, lighting); a Cinzel headline with one blue accent word; generous negative space; a refined 3-icon feature row; the KS stone-paver logo; a slim uppercase eyebrow tag; "Serving Metro Atlanta" + phone footer. DON'T: clutter; loud sale energy; low-contrast type over busy imagery.
+SIGNATURE ELEMENTS: the "KS" stone-paver monogram logo (hardscape texture), thin hairline dividers, uppercase letter-spaced eyebrow labels, elegant icon trios, twilight outdoor-living imagery.
+VOICE: Refined, confident, aspirational but warm. Sell the FEELING and the craft of a beautifully designed outdoor space; emphasize thoughtful design, quality materials, and lasting results. Upscale but approachable; never gimmicky or discount-y.
+FORMAT: Instagram carousel / social portrait, 1080x1350.`,
+  cta:`CALL-TO-ACTION — every final/CTA slide MUST use THIS:
+- Primary CTA: "Get a Free Estimate" (also fits "Plan Your Project" / "Book a Consultation").
+- Business: Kaizenscapes — Serving Metro Atlanta & North Georgia.
+- Phone/text (470) 535-0252 · kaizenscapes@gmail.com · Tagline "Thoughtful design. Lasting impressions." Keep it elegant and premium.`,
+  offer:'', locations:'Serving Metro Atlanta & North Georgia', cta1:'Get a Free Estimate', cta2:'(470) 535-0252',
+  logo:(window.KAIZEN_LOGO || ''),
+  styleLib:(window.KAIZEN_STYLES || []),
+  gbpLib:[]
+};
 let brandKits = LS.get('vs_brandkits', { 'compare-deals': DEFAULT_CD });
 if(!brandKits['compare-deals']) brandKits['compare-deals'] = DEFAULT_CD;
 else { const cd=brandKits['compare-deals']; cd.colors=DEFAULT_CD.colors; cd.guidelines=DEFAULT_CD.guidelines; cd.cta=DEFAULT_CD.cta; cd.styleLib=DEFAULT_CD.styleLib; cd.gbpLib=DEFAULT_CD.gbpLib; cd.logo=DEFAULT_CD.logo; } // upgrade Compare Deals to the full kit
@@ -685,6 +743,10 @@ if(!brandKits['diaz-motorcycles']) brandKits['diaz-motorcycles'] = DEFAULT_DIAZ;
 else { const dz=brandKits['diaz-motorcycles']; dz.colors=DEFAULT_DIAZ.colors; dz.guidelines=DEFAULT_DIAZ.guidelines; dz.cta=DEFAULT_DIAZ.cta; dz.styleLib=DEFAULT_DIAZ.styleLib; if(!dz.logo) dz.logo=DEFAULT_DIAZ.logo; } // refresh code-defined assets; keep uploaded logo
 if(!brandKits['innovative-fitness']) brandKits['innovative-fitness'] = DEFAULT_INNO; // Innovative Fitness baked in
 else { const inf=brandKits['innovative-fitness']; inf.colors=DEFAULT_INNO.colors; inf.guidelines=DEFAULT_INNO.guidelines; inf.cta=DEFAULT_INNO.cta; inf.styleLib=DEFAULT_INNO.styleLib; if(!inf.logo) inf.logo=DEFAULT_INNO.logo; } // refresh code-defined assets; keep uploaded logo
+if(!brandKits['primetime-pools']) brandKits['primetime-pools'] = DEFAULT_PRIMETIME; // Primetime Pools baked in
+else { const pt=brandKits['primetime-pools']; pt.colors=DEFAULT_PRIMETIME.colors; pt.guidelines=DEFAULT_PRIMETIME.guidelines; pt.cta=DEFAULT_PRIMETIME.cta; pt.styleLib=DEFAULT_PRIMETIME.styleLib; if(!pt.logo) pt.logo=DEFAULT_PRIMETIME.logo; } // refresh code-defined assets; keep uploaded logo
+if(!brandKits['kaizenscapes']) brandKits['kaizenscapes'] = DEFAULT_KAIZEN; // Kaizenscapes baked in
+else { const kz=brandKits['kaizenscapes']; kz.colors=DEFAULT_KAIZEN.colors; kz.guidelines=DEFAULT_KAIZEN.guidelines; kz.cta=DEFAULT_KAIZEN.cta; kz.styleLib=DEFAULT_KAIZEN.styleLib; if(!kz.logo) kz.logo=DEFAULT_KAIZEN.logo; } // refresh code-defined assets; keep uploaded logo
 function saveKits(){ LS.set('vs_brandkits', brandKits); }
 // Client dropdown order — Ruby Vet is the default (first) option
 function kitEntries(){ const p='ruby-vet'; const hide=[]; return [p, ...Object.keys(brandKits).filter(k=>k!==p)].filter(k=>brandKits[k] && !hide.includes(k)).map(k=>[k, brandKits[k]]); }

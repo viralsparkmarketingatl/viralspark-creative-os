@@ -1053,7 +1053,15 @@ function fillClients(){
 }
 fillClients();
 
-$('imgMode').onchange=()=>{ const m=$('imgMode').value; $('uploadWrap').style.display=(m==='upload')?'block':'none'; $('aiWrap').style.display=(m==='upload')?'none':'block'; $('styleRefWrap').style.display=(m==='airef')?'block':'none'; };
+// Show the reference-image upload box in Reference mode — EXCEPT a batch that already has a brand style library
+// (there the per-item style dropdowns supply the references). In clean slate there's no library, so it shows.
+function updateRefBox(){
+  const airef=$('imgMode').value==='airef';
+  const bat=!!(curFormat()&&curFormat().batch);
+  const hasLib=(typeof curLib==='function')&&curLib().length>0;
+  if($('styleRefWrap')) $('styleRefWrap').style.display=(airef && !(bat&&hasLib))?'block':'none';
+}
+$('imgMode').onchange=()=>{ const m=$('imgMode').value; $('uploadWrap').style.display=(m==='upload')?'block':'none'; $('aiWrap').style.display=(m==='upload')?'none':'block'; updateRefBox(); };
 // style references: default embedded + up to 5 total, add/remove
 function renderStyleThumbs(){
   const c=$('styleRefThumbs'); if(!c) return;
@@ -1086,7 +1094,7 @@ $('styleSel').onchange=()=>{
   else { const s=lib[parseInt(v,10)]; if(s){ selectedStyle=s; styleRefs=[s.url]; } }
   renderStyleThumbs();
 };
-$('clientSel').onchange=()=>{ if($('clientSel').value==='__none__'){ styleRefs=[]; selectedStyle=null; } fillStyles(); renderBatchItems(); };
+$('clientSel').onchange=()=>{ if($('clientSel').value==='__none__'){ styleRefs=[]; selectedStyle=null; } fillStyles(); updateRefBox(); renderBatchItems(); };
 fillStyles();
 $('imgMode').onchange(); // set initial visibility (default = reference mode)
 $('fmtSel').onchange=()=>{
@@ -1097,7 +1105,7 @@ $('fmtSel').onchange=()=>{
   if($('intentWrap'))$('intentWrap').style.display=bat?'none':'block';
   if($('aiCountWrap'))$('aiCountWrap').style.display=bat?'none':'block';
   fillStyles();
-  if($('styleRefWrap'))$('styleRefWrap').style.display=bat?'none':'block';
+  updateRefBox();
   if(bat){ if($('styleSelWrap'))$('styleSelWrap').style.display='none'; renderBatchItems(); }
 };
 $('carouselCount').oninput=renderBatchItems; renderBatchItems();

@@ -597,10 +597,42 @@ FORMAT: Instagram carousel, portrait 4:5 ratio, final size 1080x1350.`,
   styleLib: (window.RUBY_VET_STYLES || []),
   gbpLib: (window.RUBY_VET_GBP || [])
 };
+const DEFAULT_DIAZ = {
+  name:'Diaz Motorcycles',
+  colors:[
+    {name:'Diaz Red',     hex:'#D90700'},
+    {name:'Deep Red',     hex:'#9A0500'},
+    {name:'Carbon',       hex:'#0D0C0F'},
+    {name:'Ink',          hex:'#18171A'},
+    {name:'Steel',        hex:'#615F5C'},
+    {name:'Smoke',        hex:'#D6D6D8'},
+    {name:'Off-White',    hex:'#F4F4F4'},
+    {name:'Garage White', hex:'#FFFFFF'}
+  ],
+  guidelines:`DIAZ MOTORCYCLES — BRAND GUIDELINES (follow exactly).
+BUSINESS: Diaz Motorcycles and Service, LLC — full-service motorcycle repair, performance (dyno tuning, ECU flashing, Power Commander), restoration, custom paint/detailing, and pickup/delivery in Marietta / Cobb County, GA. Tagline "Honest work. Strong rides." Secondary "Where passion meets precision."
+COLORS (use these EXACT hex only): Diaz Red #D90700 (primary CTA / accents / headline emphasis), Deep Red #9A0500 (dark red accents), Carbon #0D0C0F (primary dark background), Ink #18171A (alt dark bg), Steel #615F5C (body copy on light), Smoke #D6D6D8 (lines/borders), Off-White #F4F4F4 (light panels), Garage White #FFFFFF (main light bg + type on dark/red). PROPORTIONS ~45% white/light, 35% black/dark, 15% red, 5% gray. Use WHITE text on Diaz Red; red-on-black only for large text.
+TYPOGRAPHY: Display = Bebas Neue (tall condensed ALL-CAPS) for headlines + service names. Secondary/UI = Montserrat SemiBold/Bold for subheads + buttons. Body = Montserrat Regular/Medium. Never set long body copy in Bebas Neue; never stretch or distort type.
+LAYOUT — DO: one main message per layout; punchy 1–3 line headline; 5–8% safe margins; a single primary CTA. DON'T: crowd the layout; cover faces, logos, or key motorcycle parts; use more than one expression family per layout.
+SIGNATURE ELEMENTS: mechanic-style expressions — speed slashes, circles, arrows, underlines — ONE family per layout, placed behind or beside type (red on light, white on black). Real, gritty bike/shop photography with deep blacks, clean whites, controlled red accents. The red DIAZ helmet/wrench logo sits cleanly (usually bottom-left); keep it intact — never recolor, stretch, or add effects.
+VOICE: Friendly expertise — a helpful friend who knows motorcycles. 3rd–4th grade reading level, short sentences. Speak with "you / your bike / we." Light humor ~5–10% (never about safety, accidents, money, or damage). Low sales pressure — give the best next step and let the rider decide. Never invent prices, guarantees, certifications, or horsepower gains.
+FORMAT: Instagram carousel / social portrait, 1080x1350.`,
+  cta:`CALL-TO-ACTION — every final/CTA slide MUST use THIS (Diaz is text-first):
+- Primary CTA: "Text Us For Faster Service" — text or call 470-460-9883.
+- Business: Diaz Motorcycles and Service, LLC · 847 Barnes Mill Road, Marietta, GA 30062.
+- Email DiazMotorcycles@gmail.com · Web DiazMotorcycles.com.
+- Tagline "Honest work. Strong rides." Keep it friendly-expert, low pressure, one clear next step.`,
+  offer:'', locations:'847 Barnes Mill Road, Marietta, GA 30062', cta1:'Text Us For Faster Service', cta2:'470-460-9883',
+  logo:(window.DIAZ_LOGO || ''),
+  styleLib:(window.DIAZ_STYLES || []),
+  gbpLib:[]
+};
 let brandKits = LS.get('vs_brandkits', { 'compare-deals': DEFAULT_CD });
 if(window.COMPARE_DEALS_LOGO) brandKits['compare-deals'].logo = window.COMPARE_DEALS_LOGO; // always use the embedded real logo
 if(!brandKits['ruby-vet']) brandKits['ruby-vet'] = DEFAULT_RUBY; // ensure Ruby Vet exists even on saved kits
 else { const rv=brandKits['ruby-vet']; rv.colors=DEFAULT_RUBY.colors; rv.guidelines=DEFAULT_RUBY.guidelines; rv.styleLib=DEFAULT_RUBY.styleLib; rv.gbpLib=DEFAULT_RUBY.gbpLib; if(!rv.cta) rv.cta=DEFAULT_RUBY.cta; if(!rv.logo) rv.logo=DEFAULT_RUBY.logo; } // refresh code-defined brand assets; keep an uploaded logo + edited CTA if present
+if(!brandKits['diaz-motorcycles']) brandKits['diaz-motorcycles'] = DEFAULT_DIAZ; // Diaz baked in
+else { const dz=brandKits['diaz-motorcycles']; dz.colors=DEFAULT_DIAZ.colors; dz.guidelines=DEFAULT_DIAZ.guidelines; dz.cta=DEFAULT_DIAZ.cta; dz.styleLib=DEFAULT_DIAZ.styleLib; if(!dz.logo) dz.logo=DEFAULT_DIAZ.logo; } // refresh code-defined assets; keep uploaded logo
 function saveKits(){ LS.set('vs_brandkits', brandKits); }
 // Client dropdown order — Ruby Vet is the default (first) option
 function kitEntries(){ const p='ruby-vet'; const hide=['compare-deals']; /* hidden for the Ruby Vet demo — remove from this array to show it again */ return [p, ...Object.keys(brandKits).filter(k=>k!==p)].filter(k=>brandKits[k] && !hide.includes(k)).map(k=>[k, brandKits[k]]); }

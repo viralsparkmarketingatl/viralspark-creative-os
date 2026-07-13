@@ -627,12 +627,43 @@ FORMAT: Instagram carousel / social portrait, 1080x1350.`,
   styleLib:(window.DIAZ_STYLES || []),
   gbpLib:[]
 };
+const DEFAULT_INNO = {
+  name:'Innovative Fitness',
+  colors:[
+    {name:'Purple',      hex:'#692875'},
+    {name:'Deep Purple', hex:'#3B1644'},
+    {name:'Plum',        hex:'#532665'},
+    {name:'Lime',        hex:'#D9F02F'},
+    {name:'Carbon',      hex:'#18171C'},
+    {name:'Light Gray',  hex:'#E8E8EC'},
+    {name:'Mid Gray',    hex:'#66666E'},
+    {name:'White',       hex:'#FFFFFF'}
+  ],
+  guidelines:`INNOVATIVE FITNESS — BRAND GUIDELINES (follow exactly).
+BUSINESS: Innovative Fitness — designs, builds, and installs home + commercial gyms and fitness spaces across Kennesaw / East Cobb / Metro Atlanta, GA. Custom rigs & storage, commercial-grade equipment, and long-term service ("Protection Plan": maintenance, repair, support). Positioning: "Stronger spaces. Stronger communities." · "Good spaces start with the right questions." · "From concept to completion."
+COLORS (use these EXACT hex only): Purple #692875 (primary brand / headline emphasis), Deep Purple #3B1644 (dark accents), Plum #532665 (purple variant), Lime #D9F02F (SIGNATURE accent — underlines, brackets, pills, one or two key words), Carbon #18171C (primary dark background), Light Gray #E8E8EC (light panels), Mid Gray #66666E (secondary text), White #FFFFFF (light bg + type on dark/purple). Bold, high-energy, premium. Lime is the pop — use it for one or two accents, never as long body text.
+TYPOGRAPHY: Display = heavy, tight, condensed grotesque ALL-CAPS (Roboto Black / Roboto Condensed style) for big impactful headlines. Body/UI = Roboto (Regular/Medium/Bold). SIGNATURE MOVE: two-tone headlines — split a phrase across brand colors (white + purple, or purple + lime) and drop a lime underline / bracket / circle on the key word.
+LAYOUT — DO: one bold headline (1–3 lines) top-left; real gym/equipment photography in the lower half; a single lime CTA pill; generous margins. DON'T: crowd; cover the logo or key equipment; use lime as large body text; more than one accent family per layout.
+SIGNATURE ELEMENTS: lime underlines, brackets, circles, arrows, and small pill-shaped CTA tags; the "innovative FITNESS" wordmark (purple/black swoosh mark) placed bottom-left; a faint equipment/line-art motif can sit low in the background. Photography: clean gym installs, custom rigs, technicians servicing equipment — crisp, premium, well-lit.
+VOICE: Confident, professional, community-minded, quality-and-investment focused. Speak to gym owners, facilities, apartment amenity spaces, and serious home-gym buyers. Emphasize durability, commercial-grade spec, honest guidance, and long-term protection. Clear and direct, not gimmicky.
+FORMAT: Instagram carousel / social portrait, 1080x1350.`,
+  cta:`CALL-TO-ACTION — every final/CTA slide MUST use THIS:
+- Primary CTAs (rotate to fit): "Schedule a Consultation" · "Plan Your Fitness Space" · "Protect Your Equipment Investment."
+- Business: Innovative Fitness — Kennesaw / Metro Atlanta, GA · Phone 770-218-9390.
+- Put the CTA in a lime pill on brand backgrounds. Tone: confident, professional, one clear next step.`,
+  offer:'', locations:'Kennesaw / Metro Atlanta, GA', cta1:'Schedule a Consultation', cta2:'770-218-9390',
+  logo:(window.INNO_LOGO || ''),
+  styleLib:(window.INNO_STYLES || []),
+  gbpLib:[]
+};
 let brandKits = LS.get('vs_brandkits', { 'compare-deals': DEFAULT_CD });
 if(window.COMPARE_DEALS_LOGO) brandKits['compare-deals'].logo = window.COMPARE_DEALS_LOGO; // always use the embedded real logo
 if(!brandKits['ruby-vet']) brandKits['ruby-vet'] = DEFAULT_RUBY; // ensure Ruby Vet exists even on saved kits
 else { const rv=brandKits['ruby-vet']; rv.colors=DEFAULT_RUBY.colors; rv.guidelines=DEFAULT_RUBY.guidelines; rv.styleLib=DEFAULT_RUBY.styleLib; rv.gbpLib=DEFAULT_RUBY.gbpLib; if(!rv.cta) rv.cta=DEFAULT_RUBY.cta; if(!rv.logo) rv.logo=DEFAULT_RUBY.logo; } // refresh code-defined brand assets; keep an uploaded logo + edited CTA if present
 if(!brandKits['diaz-motorcycles']) brandKits['diaz-motorcycles'] = DEFAULT_DIAZ; // Diaz baked in
 else { const dz=brandKits['diaz-motorcycles']; dz.colors=DEFAULT_DIAZ.colors; dz.guidelines=DEFAULT_DIAZ.guidelines; dz.cta=DEFAULT_DIAZ.cta; dz.styleLib=DEFAULT_DIAZ.styleLib; if(!dz.logo) dz.logo=DEFAULT_DIAZ.logo; } // refresh code-defined assets; keep uploaded logo
+if(!brandKits['innovative-fitness']) brandKits['innovative-fitness'] = DEFAULT_INNO; // Innovative Fitness baked in
+else { const inf=brandKits['innovative-fitness']; inf.colors=DEFAULT_INNO.colors; inf.guidelines=DEFAULT_INNO.guidelines; inf.cta=DEFAULT_INNO.cta; inf.styleLib=DEFAULT_INNO.styleLib; if(!inf.logo) inf.logo=DEFAULT_INNO.logo; } // refresh code-defined assets; keep uploaded logo
 function saveKits(){ LS.set('vs_brandkits', brandKits); }
 // Client dropdown order — Ruby Vet is the default (first) option
 function kitEntries(){ const p='ruby-vet'; const hide=['compare-deals']; /* hidden for the Ruby Vet demo — remove from this array to show it again */ return [p, ...Object.keys(brandKits).filter(k=>k!==p)].filter(k=>brandKits[k] && !hide.includes(k)).map(k=>[k, brandKits[k]]); }

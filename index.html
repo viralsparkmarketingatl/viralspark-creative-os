@@ -368,6 +368,19 @@ canvas#stage{display:none}
             <div style="flex:1"><label class="f">Aspect</label><select id="vidAspect"><option value="9:16">9:16 — Reels / TikTok</option><option value="16:9">16:9 — Landscape</option><option value="1:1">1:1 — Square</option></select></div>
             <div style="flex:1"><label class="f">Length</label><select id="vidDur"><option value="5">5 seconds</option><option value="10">10 seconds</option></select></div>
           </div>
+          <label class="f" style="margin-top:6px">Speed ramp — cinematic timing (adds pro camera-speed language to your prompt)</label>
+          <select id="vidRamp">
+            <option value="">None — normal, even speed</option>
+            <option value="linear">▬ Linear — steady, constant speed</option>
+            <option value="auto">✨ Auto — dynamic pacing to match the action</option>
+            <option value="flash_in">⚡ Flash In — snaps in fast, then settles</option>
+            <option value="flash_out">💨 Flash Out — normal, then whips out fast</option>
+            <option value="slowmo">🐢 Slow-mo — dramatic smooth slow motion</option>
+            <option value="bullet_time">🕶️ Bullet Time — time freezes, camera orbits</option>
+            <option value="impact">💥 Impact — fast, punches into slow-mo on the hit</option>
+            <option value="ramp_up">📈 Ramp Up — starts slow, accelerates to fast</option>
+          </select>
+          <div class="hint" style="margin-top:2px">Speed ramps aren't a raw setting on the API — I translate your pick into director-grade prompt language. Strongest on <b>Cinema Studio 3.0</b> and other cinematic models.</div>
           <div class="actions">
             <button class="btn primary full" id="vidGenBtn">Generate Video</button>
           </div>
@@ -1492,6 +1505,17 @@ if($('vidEndImgFile')) $('vidEndImgFile').onchange=async()=>{
     if(st){ st.className='status'; st.textContent='End image hosted & ready.'; }
   }catch(e){ if(st){ st.className='status'; st.textContent='Could not host that image — '+e.message; } }
 };
+// Speed ramps aren't an API param — translate each pick into director-grade prompt language.
+const SPEED_RAMPS={
+  linear:'Timing: a linear speed ramp — steady, constant playback speed throughout, even and natural, no acceleration.',
+  auto:'Timing: dynamic automatic pacing that intelligently speeds up and slows down to match the energy of the action.',
+  flash_in:'Timing: a flash-in speed ramp — the shot snaps in ultra-fast for the first beat, then eases into normal speed.',
+  flash_out:'Timing: a flash-out speed ramp — normal speed that suddenly whips into a fast motion blur at the very end.',
+  slowmo:'Timing: dramatic, buttery slow motion throughout — high-frame-rate slow-mo, fluid and detailed, every movement stretched.',
+  bullet_time:'Timing: a bullet-time effect — time nearly freezes on the subject while the camera orbits smoothly around them, Matrix-style frozen-moment cinematography.',
+  impact:'Timing: an impact speed ramp — fast motion that punches hard into dramatic slow motion at the key moment of impact, then resumes speed.',
+  ramp_up:'Timing: a ramp-up speed effect — begins in slow motion and progressively accelerates to fast, building momentum and energy.'
+};
 // only Kling v3.0 / Wan 2.7 / Seedance 2.0 support an end frame — show that field only for them
 const VID_ENDFRAME_MODELS=['kling3_0','wan2_7','seedance_2_0'];
 function vidToggleEnd(){
@@ -1519,7 +1543,9 @@ async function runVideo(){
   vidPolling=true; vidT0=Date.now(); $('vidGenBtn').disabled=true;
   try{
     const model=$('vidModel')?$('vidModel').value:'kling3_0_turbo';
-    const sub=await higgsCall({action:'submit',mode,prompt,imageUrl,endImageUrl,aspect_ratio:aspect,duration:dur,model});
+    const ramp=$('vidRamp')?$('vidRamp').value:''; const rampP=SPEED_RAMPS[ramp]||'';
+    const finalPrompt=(prompt+(rampP?(' '+rampP):'')).trim();
+    const sub=await higgsCall({action:'submit',mode,prompt:finalPrompt,imageUrl,endImageUrl,aspect_ratio:aspect,duration:dur,model});
     if(!sub.id) throw new Error('no job id returned');
     const id=sub.id;
     const poll=async()=>{

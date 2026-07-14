@@ -542,15 +542,36 @@ canvas#stage{display:none}
             <option value="elevenlabs">🔊 ElevenLabs Music</option>
           </select>
           <div class="hint" id="muEngineDesc" style="margin-top:4px;margin-bottom:12px"></div>
+          <label class="f">What are you making?</label>
+          <select id="muType" style="margin-bottom:12px">
+            <option value="">Auto — let me infer from the description</option>
+            <option value="Film or scene score (instrumental, cinematic, tension→release)">🎬 Film / scene score</option>
+            <option value="Trailer or hype intro (big, building, impactful)">🚀 Trailer / hype intro</option>
+            <option value="Hip-hop / trap beat (hard drums, 808s, catchy loop)">🎤 Hip-hop / trap beat</option>
+            <option value="Lo-fi / ambient background (chill, atmospheric, loopable)">🌙 Lo-fi / ambient</option>
+            <option value="Pop song with vocals (hooky chorus, radio-ready)">🎙️ Pop song (vocals)</option>
+            <option value="Ad / commercial jingle (short, upbeat, brandable)">📣 Ad / jingle</option>
+            <option value="Rock / band (guitars, drums, energy)">🎸 Rock / band</option>
+            <option value="Electronic / EDM (synths, drops, danceable)">🎛️ Electronic / EDM</option>
+            <option value="Epic orchestral (Zimmer-scale, cinematic, powerful)">🎻 Epic orchestral</option>
+          </select>
+          <div id="muSunoRefWrap" style="display:none;margin-bottom:12px;padding:10px;border:1px dashed var(--border);border-radius:10px">
+            <label class="f" style="margin-top:0">Reference audio (Suno only) — upload a clip to build on</label>
+            <div class="actions" style="margin:0 0 4px"><button class="btn" id="muSunoRefBtn" type="button" style="flex:1">📤 Upload reference audio (≤10MB)</button></div>
+            <input id="muSunoRefFile" type="file" accept="audio/*" style="display:none">
+            <div class="hint" id="muSunoRefName" style="margin-top:2px">Suno uploads your clip and <b>extends/builds on it</b> in the style you describe below (like “Upload Audio” on Suno's site).</div>
+          </div>
           <label class="f">Describe your scene / clip / vibe</label>
           <textarea id="muScene" style="min-height:120px" placeholder="e.g. A girl is lost after dark. Hooded figures step out of the shadows and walk toward her. I want dread that builds, then a hit the moment they appear."></textarea>
           <label class="f" style="margin-top:8px">Extra direction (optional)</label>
           <input id="muExtra" placeholder="e.g. keep it under 60s, orchestral, no drums until the end">
           <label style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer"><input type="checkbox" id="muVocals"> <span class="f" style="margin:0">I want vocals / lyrics (leave off for a film-style instrumental score)</span></label>
 
-          <label class="f" style="margin-top:12px">Reference sound (optional) — describe a track to match</label>
-          <input id="muRefDesc" placeholder="e.g. warm Rhodes, vinyl crackle, lo-fi head-nod, 82 bpm">
-          <div class="hint" style="margin-top:2px">Apiframe's music API doesn't take a reference-audio <i>file</i>, so describe the sound in words — I fold it into the prompt the engine actually uses. (Reference-voice upload lives in the Voice tab, where cloning is supported.)</div>
+          <label class="f" style="margin-top:12px">Reference track — analyze &amp; match (any engine)</label>
+          <div class="actions" style="margin:0 0 4px"><button class="btn" id="muAnalyzeBtn" type="button" style="flex:1">📊 Analyze a reference track (BPM + energy)</button></div>
+          <input id="muAnalyzeFile" type="file" accept="audio/*" style="display:none">
+          <div class="hint" id="muAnalyzeOut" style="margin-top:2px">Drop a track and I detect its <b>tempo (BPM), energy, and length</b> right in your browser (no upload) — then I lock the prompt to those so <i>any</i> engine matches its feel.</div>
+          <input id="muRefDesc" placeholder="…or just describe the sound: warm Rhodes, vinyl crackle, lo-fi head-nod, 82 bpm" style="margin-top:6px">
 
           <div class="actions"><button class="btn primary full" id="muCraftBtn">🎬 Craft the music prompt</button></div>
           <div class="status" id="muStatus">Tell me what you're scoring and I'll build the prompt.</div>
@@ -591,8 +612,12 @@ canvas#stage{display:none}
             <label class="f" style="margin-top:8px">Style — paste this into Suno's <i>Style of Music</i> field</label>
             <textarea id="muStyle" style="min-height:90px"></textarea>
             <div id="muLyricsWrap" style="display:none">
-              <label class="f" style="margin-top:8px">Lyrics</label>
+              <label class="f" style="margin-top:8px">Lyrics <span style="color:var(--light)">— structure tags + words</span></label>
               <textarea id="muLyrics" style="min-height:120px"></textarea>
+            </div>
+            <div id="muExcludeWrap" style="display:none">
+              <label class="f" style="margin-top:8px">Exclude <span style="color:var(--light)">— paste into Suno's Exclude field (Advanced)</span></label>
+              <input id="muExclude">
             </div>
             <div class="hint" id="muNotes" style="margin-top:6px"></div>
             <div class="actions" style="margin-top:8px">
@@ -1960,28 +1985,70 @@ if($('muRefFile')) $('muRefFile').onchange=async()=>{
     if(nm){ nm.textContent='Reference hosted ✓ — '+f.name+' (ready for Suno once connected).'; }
   }catch(e){ if(nm){ nm.textContent='Could not host that track — '+e.message; } }
 };
+// ---- Reference track analyzer (client-side BPM + energy → feeds any engine) ----
+let muRefAnalysis='';
+function muFmtDur(s){ const m=Math.floor(s/60); return m+':'+String(Math.round(s%60)).padStart(2,'0'); }
+function muDetectBPM(data,sr){
+  let max=0; for(let i=0;i<data.length;i++){ const a=Math.abs(data[i]); if(a>max)max=a; }
+  if(max<=0) return 0;
+  let peaks=[], thr=0.9; const gap=Math.floor(sr*0.28);
+  while(peaks.length<40 && thr>0.15){ peaks=[]; const t=max*thr; for(let i=0;i<data.length;){ if(Math.abs(data[i])>t){ peaks.push(i); i+=gap; } else i++; } thr-=0.05; }
+  const counts={};
+  for(let i=0;i<peaks.length;i++){ for(let j=1;j<=8 && i+j<peaks.length;j++){ const iv=peaks[i+j]-peaks[i]; if(iv<=0) continue; let b=60*sr/iv; while(b<70)b*=2; while(b>180)b/=2; const r=Math.round(b); counts[r]=(counts[r]||0)+1; } }
+  let best=0,bc=0; for(const k in counts){ if(counts[k]>bc){bc=counts[k];best=+k;} }
+  return best;
+}
+async function muAnalyzeAudio(file){
+  const ab=await file.arrayBuffer();
+  const AC=window.AudioContext||window.webkitAudioContext; const ctx=new AC();
+  const buf=await ctx.decodeAudioData(ab.slice(0)); try{ctx.close();}catch(e){}
+  const sr=buf.sampleRate, dur=buf.duration;
+  const d0=buf.getChannelData(0); let sum=0,n=0; for(let i=0;i<d0.length;i+=200){ sum+=d0[i]*d0[i]; n++; }
+  const energy=Math.min(100,Math.round(Math.sqrt(sum/Math.max(1,n))*300));
+  const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+  const oac=new OAC(1,buf.length,sr); const src=oac.createBufferSource(); src.buffer=buf;
+  const lp=oac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=150; src.connect(lp); lp.connect(oac.destination); src.start(0);
+  const rb=await oac.startRendering();
+  return { bpm:muDetectBPM(rb.getChannelData(0),sr), energy, dur };
+}
+if($('muAnalyzeBtn')) $('muAnalyzeBtn').onclick=()=>{ if($('muAnalyzeFile')) $('muAnalyzeFile').click(); };
+if($('muAnalyzeFile')) $('muAnalyzeFile').onchange=async()=>{
+  const f=$('muAnalyzeFile').files[0]; if(!f) return; const out=$('muAnalyzeOut');
+  if(out) out.innerHTML='Analyzing your track…';
+  try{
+    const a=await muAnalyzeAudio(f);
+    const feel=a.bpm?(a.bpm<80?'slow':a.bpm<110?'mid-tempo':a.bpm<140?'uptempo':'fast'):'';
+    const en=a.energy<33?'low energy':a.energy<66?'medium energy':'high energy';
+    muRefAnalysis='Reference track analysis — '+(a.bpm?('~'+a.bpm+' BPM ('+feel+'), '):'')+en+', length '+muFmtDur(a.dur)+'. Match this tempo and energy.';
+    if(out) out.innerHTML='✅ '+(a.bpm?('<b>~'+a.bpm+' BPM</b> ('+feel+') · '):'')+en+' · '+muFmtDur(a.dur)+' — locked into the prompt for any engine.';
+  }catch(e){ if(out) out.textContent='Could not analyze that file — '+e.message; }
+};
+let muCraftInstrumental=true; // whether the last crafted prompt is instrumental (lyrics box may hold a no-words structure skeleton)
 if($('muCraftBtn')) $('muCraftBtn').onclick=async()=>{
   const scene=($('muScene').value||'').trim(); const extra=($('muExtra').value||'').trim(); const wantVocals=$('muVocals').checked;
-  const reference=($('muRefDesc').value||'').trim();
+  const reference=[($('muRefDesc').value||'').trim(), muRefAnalysis].filter(Boolean).join(' '); const projectType=$('muType')?$('muType').value:'';
   const st=$('muStatus');
   if(!scene){ st.className='status'; st.textContent='Describe the scene, clip, or vibe first.'; return; }
-  $('muCraftBtn').disabled=true; st.className='status busy'; st.textContent='Composing your prompt…';
+  $('muCraftBtn').disabled=true; st.className='status busy'; st.textContent='Composing your Suno-pro prompt…';
   try{
-    const r=await fetch(LS.get('vs_musicprompt_endpoint','https://creative-os-api.vercel.app/api/music-prompt'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scene,extra,wantVocals,reference})});
+    const r=await fetch(LS.get('vs_musicprompt_endpoint','https://creative-os-api.vercel.app/api/music-prompt'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scene,extra,wantVocals,reference,projectType})});
     const d=await r.json().catch(()=>({error:'bad response'}));
     if(!r.ok||!d.style) throw new Error(d.error||('HTTP '+r.status));
     $('muTitle').value=d.title||''; $('muStyle').value=d.style||'';
-    const hasLyrics=d.instrumental===false && (d.lyrics||'').trim();
+    muCraftInstrumental=(d.instrumental!==false);
+    const hasLyrics=(d.lyrics||'').trim();
     $('muLyricsWrap').style.display=hasLyrics?'block':'none'; $('muLyrics').value=hasLyrics?d.lyrics:'';
+    const exc=(d.exclude||'').trim();
+    if($('muExcludeWrap')) $('muExcludeWrap').style.display=exc?'block':'none'; if($('muExclude')) $('muExclude').value=exc;
     $('muNotes').textContent=d.notes||'';
     $('muOut').style.display='block';
-    st.className='status'; st.textContent='Prompt ready. Copy it into Suno — or tweak the style and re-copy.';
+    st.className='status'; st.textContent='Pro prompt ready — Style (the sound) + Lyrics (the structure) + Exclude. Tweak & Generate.';
   }catch(e){ st.className='status'; st.textContent='Error — '+e.message; }
   $('muCraftBtn').disabled=false;
 };
 function muCopy(text,btn){ try{ navigator.clipboard.writeText(text); }catch(e){} const o=btn.textContent; btn.textContent='Copied ✓'; setTimeout(()=>btn.textContent=o,1200); }
 if($('muCopyStyle')) $('muCopyStyle').onclick=()=>muCopy($('muStyle').value||'',$('muCopyStyle'));
-if($('muCopyAll')) $('muCopyAll').onclick=()=>{ const parts=['TITLE: '+($('muTitle').value||''),'STYLE: '+($('muStyle').value||'')]; if($('muLyricsWrap').style.display!=='none'&&($('muLyrics').value||'').trim()) parts.push('LYRICS:\n'+$('muLyrics').value); muCopy(parts.join('\n\n'),$('muCopyAll')); };
+if($('muCopyAll')) $('muCopyAll').onclick=()=>{ const parts=['TITLE: '+($('muTitle').value||''),'STYLE: '+($('muStyle').value||'')]; if($('muLyricsWrap').style.display!=='none'&&($('muLyrics').value||'').trim()) parts.push('LYRICS:\n'+$('muLyrics').value); if($('muExcludeWrap')&&$('muExcludeWrap').style.display!=='none'&&($('muExclude').value||'').trim()) parts.push('EXCLUDE: '+$('muExclude').value); muCopy(parts.join('\n\n'),$('muCopyAll')); };
 // engine picker: describe what each model is best for
 const MU_ENGINES={
   suno:'Suno — the all-rounder. Full songs with vocals, lyrics & instrumentation in any genre. Best default for songs, ads, and social clips.',
@@ -1992,7 +2059,16 @@ const MU_ENGINES={
   elevenlabs:'ElevenLabs Music — studio-grade, long-form composition (up to ~5 min). Best for polished, professional production and longer pieces.'
 };
 function muEngineName(e){ return {suno:'Suno',udio:'Udio',mureka:'Mureka',producer:'Producer',lyria:'Lyria 3 Pro',elevenlabs:'ElevenLabs Music'}[e]||'Suno'; }
-function muUpdateEngine(){ const e=$('muEngine')?$('muEngine').value:'suno'; if($('muEngineDesc')) $('muEngineDesc').textContent=MU_ENGINES[e]||''; if($('muEngineActive')) $('muEngineActive').textContent=muEngineName(e); }
+function muUpdateEngine(){ const e=$('muEngine')?$('muEngine').value:'suno'; if($('muEngineDesc')) $('muEngineDesc').textContent=MU_ENGINES[e]||''; if($('muEngineActive')) $('muEngineActive').textContent=muEngineName(e); if($('muSunoRefWrap')) $('muSunoRefWrap').style.display=(e==='suno')?'block':'none'; }
+// Suno reference audio (upload a clip Suno builds on)
+let muSunoRefData='';
+if($('muSunoRefBtn')) $('muSunoRefBtn').onclick=()=>{ if($('muSunoRefFile')) $('muSunoRefFile').click(); };
+if($('muSunoRefFile')) $('muSunoRefFile').onchange=async()=>{
+  const f=$('muSunoRefFile').files[0]; if(!f) return; const nm=$('muSunoRefName');
+  if(f.size>10*1024*1024){ if(nm) nm.textContent='That clip is over 10MB — Suno\'s upload limit. Trim it shorter.'; return; }
+  try{ muSunoRefData=await fileToURL(f); if(nm) nm.textContent='Reference ready ✓ — '+f.name+'. Suno will build on it in your style.'; }
+  catch(e){ if(nm) nm.textContent='Could not read that clip — '+e.message; }
+};
 if($('muEngine')) $('muEngine').addEventListener('change',muUpdateEngine); muUpdateEngine();
 // one-click generation via Apiframe v2 (Suno / Udio / Mureka / Producer / Lyria / ElevenLabs)
 let muGenBusy=false;
@@ -2000,22 +2076,23 @@ if($('muGenBtn')) $('muGenBtn').onclick=async()=>{
   if(muGenBusy) return;
   const engine=$('muEngine')?($('muEngine').value||'suno'):'suno';
   const style=($('muStyle').value||'').trim(); const title=($('muTitle').value||'').trim();
-  const hasLyrics=$('muLyricsWrap').style.display!=='none' && ($('muLyrics').value||'').trim();
-  const lyrics=hasLyrics?($('muLyrics').value||'').trim():''; const instrumental=!hasLyrics;
+  const instrumental=muCraftInstrumental;
+  const lyrics=(!instrumental && ($('muLyrics').value||'').trim())?($('muLyrics').value||'').trim():'';
   const st=$('muGenStatus');
   if(!style && !lyrics){ st.className='status'; st.textContent='Craft a prompt first.'; return; }
   muGenBusy=true; $('muGenBtn').disabled=true; $('muGenOut').innerHTML=''; const t0=Date.now();
   const el=()=>{ const s=Math.floor((Date.now()-t0)/1000); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
   st.className='status busy'; st.textContent='Sending to '+muEngineName(engine)+'…';
   try{
-    const r=await fetch(LS.get('vs_suno_endpoint','https://creative-os-api.vercel.app/api/suno-music'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'generate',engine,style,lyrics,title,instrumental})});
+    const refAudio=(engine==='suno' && muSunoRefData)?muSunoRefData:'';
+    const r=await fetch(LS.get('vs_suno_endpoint','https://creative-os-api.vercel.app/api/suno-music'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'generate',engine,style,lyrics,title,instrumental,refAudio})});
     const d=await r.json().catch(()=>({error:'bad response'}));
     if(!r.ok||!d.id) throw new Error(d.error||('HTTP '+r.status));
-    const id=d.id;
+    const id=d.id; const poll_kind=d.poll||'v2';
     const poll=async()=>{
       if(!muGenBusy) return;
       try{
-        const sr=await fetch(LS.get('vs_suno_endpoint','https://creative-os-api.vercel.app/api/suno-music'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'status',id})});
+        const sr=await fetch(LS.get('vs_suno_endpoint','https://creative-os-api.vercel.app/api/suno-music'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'status',id,poll:poll_kind})});
         const sd=await sr.json().catch(()=>({}));
         if(!sr.ok) throw new Error(sd.error||('HTTP '+sr.status));
         const status=(sd.status||'').toLowerCase();

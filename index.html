@@ -148,6 +148,8 @@ canvas#stage{display:none}
     <button class="navbtn" data-screen="scripts"><span class="ic">✍</span> Script Generator</button>
     <button class="navbtn" data-screen="video"><span class="ic">🎬</span> Video Generator</button>
     <button class="navbtn" data-screen="motion"><span class="ic">🕹️</span> Motion Control</button>
+    <button class="navbtn" data-screen="avatar"><span class="ic">🧑‍🎤</span> Avatar Studio</button>
+    <button class="navbtn" data-screen="talk"><span class="ic">🗣️</span> Talking Spokesperson</button>
     <button class="navbtn" data-screen="stylegen"><span class="ic">🎨</span> Style Ref Generator</button>
     <button class="navbtn soon" disabled><span class="ic">◈</span> Ad Generator <span class="tag">Soon</span></button>
     <div class="navlabel">Library</div>
@@ -348,6 +350,8 @@ canvas#stage{display:none}
             <option value="minimax_hailuo">😀 Minimax Hailuo — natural physics + facial emotion</option>
             <option value="grok_video">🗣️ Grok Video — text+image, audio</option>
             <option value="veo3_1_lite">💨 Veo 3.1 Lite — fast budget batches</option>
+            <option value="wan2_7">🔊 Wan 2.7 — synced audio + character-consistent</option>
+            <option value="wan2_6">🎨 Wan 2.6 — stylized / experimental / artistic</option>
           </select>
           <div class="kv" style="gap:10px;margin-top:6px">
             <div style="flex:1"><label class="f">Aspect</label><select id="vidAspect"><option value="9:16">9:16 — Reels / TikTok</option><option value="16:9">16:9 — Landscape</option><option value="1:1">1:1 — Square</option></select></div>
@@ -400,6 +404,91 @@ canvas#stage{display:none}
         <div class="card">
           <div class="status" id="mcStatus">Upload a character image and a driving video, then hit Generate.</div>
           <div id="mcOut"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AVATAR STUDIO (Higgsfield Soul) -->
+    <section class="screen" id="screen-avatar">
+      <div class="head">
+        <div class="eyebrow">Identity</div>
+        <h1 class="title">Avatar Studio</h1>
+        <p class="subt">Upload <b>5–20 photos</b> of a person (or a brand spokesperson) and train a reusable AI <b>avatar</b>. Once it's ready you can generate unlimited on-brand images of them — and next, have them talk. Best results: varied angles, expressions, and lighting; clear face; no heavy filters.</p>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <div class="eyebrow" style="margin-bottom:8px">① Train a new avatar</div>
+          <label class="f">Avatar name (e.g. "Jason — Spokesperson")</label>
+          <input id="avName" placeholder="Name this person">
+          <label class="f" style="margin-top:8px">Photos — 5 to 20 (varied angles / expressions)</label>
+          <div class="actions" style="margin:0 0 6px">
+            <button class="btn" id="avPhotoBtn" type="button" style="flex:1">📤 Add photos</button>
+          </div>
+          <div id="avThumbs" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px"></div>
+          <div class="hint" id="avCount">0 photos added — need at least 5.</div>
+          <input id="avPhotoFile" type="file" accept="image/*" multiple style="display:none">
+          <div class="actions"><button class="btn primary full" id="avTrainBtn" disabled>Train Avatar (~10 min)</button></div>
+          <div class="status" id="avTrainStatus" style="margin-top:8px">Add photos and a name to begin.</div>
+        </div>
+        <div class="card">
+          <div class="eyebrow" style="margin-bottom:8px">② Generate with a saved avatar</div>
+          <label class="f">Choose avatar</label>
+          <select id="avSelect"><option value="">— no avatars yet —</option></select>
+          <div class="hint" id="avSelHint" style="margin-top:2px"></div>
+          <label class="f" style="margin-top:8px">Describe the shot</label>
+          <textarea id="avPrompt" style="min-height:90px" placeholder="e.g. Confident portrait in a modern office, soft window light, wearing a navy blazer"></textarea>
+          <div class="kv" style="gap:10px;margin-top:6px">
+            <div style="flex:1"><label class="f">Aspect</label><select id="avAspect"><option value="3:4">3:4 — Portrait</option><option value="1:1">1:1 — Square</option><option value="9:16">9:16 — Vertical</option><option value="16:9">16:9 — Landscape</option></select></div>
+          </div>
+          <div class="actions"><button class="btn primary full" id="avGenBtn">Generate Image</button></div>
+          <div class="status" id="avGenStatus">Pick a ready avatar, describe the shot, and Generate.</div>
+          <div id="avOut"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TALKING SPOKESPERSON (voice + Wan 2.7 lip-sync) -->
+    <section class="screen" id="screen-talk">
+      <div class="head">
+        <div class="eyebrow">Spokesperson</div>
+        <h1 class="title">Talking Spokesperson</h1>
+        <p class="subt">Turn a <b>face + a script</b> into a talking video. Pick a voice (or clone your own), type what they say, and it lip-syncs the words onto the image — powered by Wan 2.7. Perfect for UGC-style ads, intros, and announcements.</p>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <label class="f">1 · Spokesperson image (a clear face)</label>
+          <div class="actions" style="margin:0 0 6px">
+            <button class="btn" id="tkImgBtn" type="button" style="flex:1">📤 Upload a face photo</button>
+          </div>
+          <input id="tkImgUrl" placeholder="…or paste a public image URL">
+          <img id="tkImgPreview" style="display:none;max-width:100%;border-radius:10px;margin-top:8px" alt="">
+          <input id="tkImgFile" type="file" accept="image/*" style="display:none">
+
+          <label class="f" style="margin-top:14px">2 · Voice</label>
+          <select id="tkVoice"><option value="">— loading voices… —</option></select>
+          <div class="actions" style="margin:6px 0 0">
+            <button class="btn" id="tkCloneBtn" type="button" style="flex:1">🎙️ Clone a new voice from an audio clip</button>
+          </div>
+          <div id="tkCloneWrap" style="display:none;margin-top:8px;padding:10px;border:1px solid var(--border);border-radius:10px">
+            <label class="f">Voice name</label>
+            <input id="tkCloneName" placeholder="e.g. Jason — Natural">
+            <div class="actions" style="margin:6px 0"><button class="btn" id="tkCloneFileBtn" type="button" style="flex:1">📤 Upload voice audio (10s–3min, clear speech)</button></div>
+            <input id="tkCloneFile" type="file" accept="audio/*" style="display:none">
+            <button class="btn primary full" id="tkCloneGo" disabled>Clone Voice (~1–2 min)</button>
+            <div class="hint" id="tkCloneStatus" style="margin-top:4px"></div>
+          </div>
+
+          <label class="f" style="margin-top:14px">3 · Script — what they say</label>
+          <textarea id="tkScript" style="min-height:90px" placeholder="Hey! I'm so glad you're here. Let me show you why our customers love us…"></textarea>
+          <div class="kv" style="gap:10px;margin-top:6px">
+            <div style="flex:1"><label class="f">Aspect</label><select id="tkAspect"><option value="9:16">9:16 — Reels / TikTok</option><option value="1:1">1:1 — Square</option><option value="16:9">16:9 — Landscape</option></select></div>
+          </div>
+          <div class="actions"><button class="btn primary full" id="tkGenBtn">Generate Talking Video</button></div>
+          <div class="hint">Two steps run automatically: voice → lip-synced video. Total ~3–5 min. Auto-saves to History.</div>
+        </div>
+        <div class="card">
+          <div class="status" id="tkStatus">Add a face, pick a voice, write a script, then Generate.</div>
+          <div id="tkOut"></div>
         </div>
       </div>
     </section>
@@ -1209,6 +1298,8 @@ document.querySelectorAll('.navbtn[data-screen]').forEach(b=>b.onclick=()=>{
   $('screen-'+b.dataset.screen).classList.add('on');
   if(b.dataset.screen==='history') loadHistory();
   if(b.dataset.screen==='stylegen' && typeof sgPrefill==='function') sgPrefill();
+  if(b.dataset.screen==='avatar' && typeof avRefreshSelect==='function'){ avRefreshSelect(); avGet().filter(a=>a.status==='training').forEach(a=>avPollTraining(a.id)); }
+  if(b.dataset.screen==='talk' && typeof tkLoadVoices==='function' && !tkVoicesLoaded) tkLoadVoices();
 });
 
 /* ---------- INIT UI ---------- */
@@ -1427,6 +1518,216 @@ function finishMotion(url){
   HDB.add({ts:Date.now(),fn:fn,client:client,dataURL:url,kind:'video'});
 }
 if($('mcGenBtn')) $('mcGenBtn').onclick=runMotion;
+
+/* ---------- AVATAR STUDIO (Higgsfield Soul) ---------- */
+function avGet(){ try{ return JSON.parse(localStorage.getItem('vs_avatars')||'[]'); }catch(e){ return []; } }
+function avSaveList(list){ localStorage.setItem('vs_avatars', JSON.stringify(list)); }
+function avUpsert(a){ const l=avGet(); const i=l.findIndex(x=>x.id===a.id); if(i>=0) l[i]={...l[i],...a}; else l.unshift(a); avSaveList(l); }
+let avPhotos=[]; // {url}
+function avRenderThumbs(){
+  const wrap=$('avThumbs'); if(!wrap) return;
+  wrap.innerHTML=avPhotos.map((p,i)=>'<div style="position:relative"><img src="'+p.url+'" style="width:54px;height:54px;object-fit:cover;border-radius:8px"><button data-i="'+i+'" class="avRm" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;border:none;background:#c0392b;color:#fff;cursor:pointer;line-height:1;font-size:12px">×</button></div>').join('');
+  wrap.querySelectorAll('.avRm').forEach(b=>b.onclick=()=>{ avPhotos.splice(+b.dataset.i,1); avRenderThumbs(); avUpdateCount(); });
+  if($('avCount')) $('avCount').textContent=avPhotos.length+' photo'+(avPhotos.length===1?'':'s')+' added'+(avPhotos.length<5?' — need at least 5.':(avPhotos.length>20?' — max 20, extras ignored.':' — ready to train.'));
+  avUpdateCount();
+}
+function avUpdateCount(){
+  const ok=avPhotos.length>=5 && ($('avName').value||'').trim().length>0;
+  if($('avTrainBtn')) $('avTrainBtn').disabled=!ok;
+}
+if($('avName')) $('avName').oninput=avUpdateCount;
+if($('avPhotoBtn')) $('avPhotoBtn').onclick=()=>{ if($('avPhotoFile')) $('avPhotoFile').click(); };
+if($('avPhotoFile')) $('avPhotoFile').onchange=async()=>{
+  const files=[...$('avPhotoFile').files]; if(!files.length) return; const st=$('avTrainStatus');
+  for(const f of files){
+    if(avPhotos.length>=20){ break; }
+    try{
+      let url=await fileToURL(f); url=await resizeDataURL(url,1024);
+      if(st){ st.className='status busy'; st.textContent='Hosting photo '+(avPhotos.length+1)+'…'; }
+      const pub=await bunnyUpload(url,'avatar','jpg'); avPhotos.push({url:pub}); avRenderThumbs();
+    }catch(e){ if(st){ st.className='status'; st.textContent='A photo failed — '+e.message; } }
+  }
+  $('avPhotoFile').value='';
+  if(st){ st.className='status'; st.textContent=avPhotos.length+' photos hosted. '+(avPhotos.length>=5?'Ready to train.':'Add '+(5-avPhotos.length)+' more.'); }
+};
+if($('avTrainBtn')) $('avTrainBtn').onclick=async()=>{
+  const name=($('avName').value||'').trim(); const urls=avPhotos.map(p=>p.url);
+  if(!name||urls.length<5) return;
+  const st=$('avTrainStatus'); $('avTrainBtn').disabled=true;
+  st.className='status busy'; st.textContent='Sending photos to train "'+name+'"…';
+  try{
+    const r=await higgsCall({action:'avatar_train',name,imageUrls:urls});
+    if(!r.soul_id) throw new Error('no avatar id returned');
+    avUpsert({id:r.soul_id,name:name,status:'training',ts:Date.now()});
+    st.className='status'; st.textContent='Training "'+name+'" — takes ~10 min. You can leave this tab; it saves automatically. It\'ll appear in the avatar list on the right when ready.';
+    avPhotos=[]; avRenderThumbs(); $('avName').value=''; avUpdateCount();
+    avRefreshSelect(); avPollTraining(r.soul_id);
+  }catch(e){ st.className='status'; st.textContent='Training error — '+e.message; $('avTrainBtn').disabled=false; }
+};
+function avPollTraining(id){
+  const tick=async()=>{
+    const a=avGet().find(x=>x.id===id); if(!a||a.status==='ready'||a.status==='failed') return;
+    try{
+      const r=await higgsCall({action:'avatar_status',soul_id:id});
+      const s=(r.status||'training').toLowerCase();
+      if(s==='ready'){ avUpsert({id,status:'ready'}); avRefreshSelect(); if($('avTrainStatus')){ $('avTrainStatus').className='status'; $('avTrainStatus').textContent='✅ "'+(a.name||'Avatar')+'" is ready! Pick it on the right to generate.'; } return; }
+      if(s==='failed'){ avUpsert({id,status:'failed'}); avRefreshSelect(); return; }
+    }catch(e){}
+    setTimeout(tick,30000);
+  };
+  setTimeout(tick,30000);
+}
+function avRefreshSelect(){
+  const sel=$('avSelect'); if(!sel) return; const cur=sel.value; const list=avGet();
+  if(!list.length){ sel.innerHTML='<option value="">— no avatars yet —</option>'; if($('avSelHint')) $('avSelHint').textContent=''; return; }
+  sel.innerHTML=list.map(a=>'<option value="'+a.id+'"'+(a.status!=='ready'?' disabled':'')+'>'+a.name+(a.status==='ready'?'':' ('+a.status+'…)')+'</option>').join('');
+  const ready=list.find(a=>a.status==='ready'); if(cur&&list.some(a=>a.id===cur&&a.status==='ready')) sel.value=cur; else if(ready) sel.value=ready.id;
+  if($('avSelHint')) $('avSelHint').textContent=list.some(a=>a.status!=='ready')?'Avatars still training are greyed out until ready.':'';
+}
+let avGenPolling=false;
+if($('avGenBtn')) $('avGenBtn').onclick=async()=>{
+  if(avGenPolling) return;
+  const soul_id=$('avSelect').value; const prompt=($('avPrompt').value||'').trim();
+  const st=$('avGenStatus');
+  if(!soul_id){ st.className='status'; st.textContent='Pick a ready avatar first (train one on the left).'; return; }
+  if(!prompt){ st.className='status'; st.textContent='Describe the shot you want.'; return; }
+  const aspect_ratio=$('avAspect').value;
+  $('avOut').innerHTML=''; st.className='status busy'; st.textContent='Generating…'; avGenPolling=true; $('avGenBtn').disabled=true;
+  const t0=Date.now(); const el=()=>{ const s=Math.floor((Date.now()-t0)/1000); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
+  const show=(url)=>{ avGenPolling=false; $('avGenBtn').disabled=false; st.className='status'; st.textContent='Done in '+el()+'! Saved to History.';
+    const fn='avatar-'+Date.now()+'.png';
+    $('avOut').innerHTML='<div class="pcard"><img src="'+url+'" style="width:100%;display:block"><div class="pf"><span>'+fn+'</span><a href="'+url+'" download="'+fn+'" target="_blank" style="text-decoration:none"><button>Download</button></a></div></div>';
+    let client=''; try{ client=activeBrand().name||''; }catch(e){}
+    HDB.add({ts:Date.now(),fn:fn,client:client,dataURL:url,kind:'image'});
+  };
+  try{
+    const r=await higgsCall({action:'avatar_image',soul_id,prompt,aspect_ratio});
+    if(r.status==='completed'&&r.url){ show(r.url); return; }
+    if(!r.id) throw new Error('no job id returned');
+    const poll=async()=>{
+      if(!avGenPolling) return;
+      try{
+        const std=await higgsCall({action:'status',id:r.id});
+        const s=(std.status||'').toLowerCase();
+        if(s==='completed'&&std.url){ show(std.url); return; }
+        if(s==='failed'||s==='nsfw'){ throw new Error('generation '+s); }
+        st.textContent='Generating your avatar image… ('+el()+')'; setTimeout(poll,6000);
+      }catch(e){ avGenPolling=false; $('avGenBtn').disabled=false; st.className='status'; st.textContent='Stopped — '+e.message; }
+    };
+    setTimeout(poll,6000);
+  }catch(e){ avGenPolling=false; $('avGenBtn').disabled=false; st.className='status'; st.textContent='Error — '+e.message; }
+};
+
+/* ---------- TALKING SPOKESPERSON (voice + Wan 2.7 lip-sync) ---------- */
+function tkVoicesLocal(){ try{ return JSON.parse(localStorage.getItem('vs_voices')||'[]'); }catch(e){ return []; } }
+function tkSaveVoice(v){ const l=tkVoicesLocal(); if(!l.some(x=>x.voice_id===v.voice_id)){ l.unshift(v); localStorage.setItem('vs_voices',JSON.stringify(l)); } }
+let tkVoicesLoaded=false;
+async function tkLoadVoices(){
+  const sel=$('tkVoice'); if(!sel) return;
+  let server=[]; try{ const r=await higgsCall({action:'voices_list'}); server=r.voices||[]; }catch(e){}
+  const local=tkVoicesLocal();
+  const all=[...local]; server.forEach(v=>{ if(!all.some(x=>x.voice_id===v.voice_id)) all.push(v); });
+  if(!all.length){ sel.innerHTML='<option value="">— no voices found —</option>'; return; }
+  const cur=sel.value;
+  sel.innerHTML=all.map(v=>'<option value="'+v.voice_id+'" data-type="'+(v.voice_type||'preset')+'">'+v.name+(v.voice_type==='element'?' (cloned)':'')+'</option>').join('');
+  if(cur&&all.some(v=>v.voice_id===cur)) sel.value=cur;
+  tkVoicesLoaded=true;
+}
+// spokesperson image upload
+if($('tkImgBtn')) $('tkImgBtn').onclick=()=>{ if($('tkImgFile')) $('tkImgFile').click(); };
+if($('tkImgFile')) $('tkImgFile').onchange=async()=>{
+  const f=$('tkImgFile').files[0]; if(!f) return; const st=$('tkStatus');
+  try{
+    let url=await fileToURL(f); url=await resizeDataURL(url,1280);
+    const p=$('tkImgPreview'); if(p){ p.src=url; p.style.display=''; }
+    if(st){ st.className='status busy'; st.textContent='Hosting the face…'; }
+    const pub=await bunnyUpload(url,'talk-img','jpg'); $('tkImgUrl').value=pub;
+    if(st){ st.className='status'; st.textContent='Face ready.'; }
+  }catch(e){ if(st){ st.className='status'; st.textContent='Could not host image — '+e.message; } }
+};
+// clone-voice UI
+let tkCloneAudioUrl='';
+if($('tkCloneBtn')) $('tkCloneBtn').onclick=()=>{ const w=$('tkCloneWrap'); w.style.display=(w.style.display==='none')?'block':'none'; };
+if($('tkCloneName')) $('tkCloneName').oninput=()=>{ $('tkCloneGo').disabled=!(($('tkCloneName').value||'').trim()&&tkCloneAudioUrl); };
+if($('tkCloneFileBtn')) $('tkCloneFileBtn').onclick=()=>{ if($('tkCloneFile')) $('tkCloneFile').click(); };
+if($('tkCloneFile')) $('tkCloneFile').onchange=async()=>{
+  const f=$('tkCloneFile').files[0]; if(!f) return; const st=$('tkCloneStatus');
+  if(f.size>48*1024*1024){ st.textContent='Audio too big (>48MB) — use a shorter clip.'; return; }
+  try{
+    const url=await fileToURL(f);
+    if(st){ st.textContent='Hosting audio…'; }
+    const ext=(f.name.split('.').pop()||'mp3').toLowerCase();
+    tkCloneAudioUrl=await bunnyUpload(url,'voice-src',ext);
+    if(st){ st.textContent='Audio ready. Name it and clone.'; }
+    $('tkCloneGo').disabled=!(($('tkCloneName').value||'').trim()&&tkCloneAudioUrl);
+  }catch(e){ if(st){ st.textContent='Could not host audio — '+e.message; } }
+};
+if($('tkCloneGo')) $('tkCloneGo').onclick=async()=>{
+  const name=($('tkCloneName').value||'').trim(); const st=$('tkCloneStatus');
+  if(!name||!tkCloneAudioUrl) return;
+  $('tkCloneGo').disabled=true; st.textContent='Cloning "'+name+'"…';
+  try{
+    const r=await higgsCall({action:'voice_clone',name,audioUrl:tkCloneAudioUrl});
+    if(!r.voice_id) throw new Error('no voice id');
+    tkSaveVoice({voice_id:r.voice_id,name:name,voice_type:'element'});
+    await tkLoadVoices(); $('tkVoice').value=r.voice_id;
+    st.textContent='✅ Cloned! It may take ~1–2 min to finish training before it sounds right. Selected it for you.';
+    tkCloneAudioUrl=''; $('tkCloneName').value='';
+  }catch(e){ st.textContent='Clone error — '+e.message; $('tkCloneGo').disabled=false; }
+};
+// generate talking video (2-step: audio -> lip-sync video)
+let tkBusy=false;
+function tkEl(t0){ const s=Math.floor((Date.now()-t0)/1000); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+if($('tkGenBtn')) $('tkGenBtn').onclick=async()=>{
+  if(tkBusy) return;
+  const imageUrl=($('tkImgUrl').value||'').trim();
+  const sel=$('tkVoice'); const voice_id=sel.value; const voice_type=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].dataset.type:'preset';
+  const script=($('tkScript').value||'').trim(); const aspect_ratio=$('tkAspect').value;
+  const st=$('tkStatus');
+  if(!imageUrl){ st.className='status'; st.textContent='Add a spokesperson face first.'; return; }
+  if(!voice_id){ st.className='status'; st.textContent='Pick a voice (or clone one).'; return; }
+  if(!script){ st.className='status'; st.textContent='Write the script.'; return; }
+  tkBusy=true; $('tkGenBtn').disabled=true; $('tkOut').innerHTML=''; const t0=Date.now();
+  st.className='status busy'; st.textContent='Step 1/2 — generating the voice…';
+  try{
+    // Step 1: TTS
+    const a=await higgsCall({action:'talk_audio',voice_id,voice_type,script});
+    if(!a.id) throw new Error('voice step returned no job');
+    const audioId=await new Promise((resolve,reject)=>{
+      const poll=async()=>{
+        try{
+          const std=await higgsCall({action:'status',id:a.id});
+          const s=(std.status||'').toLowerCase();
+          if(s==='completed'){ resolve(a.id); return; }
+          if(s==='failed'||s==='nsfw'){ reject(new Error('voice '+s)); return; }
+          st.textContent='Step 1/2 — generating the voice… ('+tkEl(t0)+')'; setTimeout(poll,5000);
+        }catch(e){ reject(e); }
+      }; setTimeout(poll,4000);
+    });
+    // Step 2: lip-sync video
+    st.textContent='Step 2/2 — lip-syncing the video…';
+    const v=await higgsCall({action:'talk_video',imageUrl,audioId,aspect_ratio});
+    if(!v.id) throw new Error('video step returned no job');
+    const poll=async()=>{
+      if(!tkBusy) return;
+      try{
+        const std=await higgsCall({action:'status',id:v.id});
+        const s=(std.status||'').toLowerCase();
+        if(s==='completed'&&std.url){
+          tkBusy=false; $('tkGenBtn').disabled=false; st.className='status'; st.textContent='Done in '+tkEl(t0)+'! Saved to History.';
+          const fn='talking-'+Date.now()+'.mp4';
+          $('tkOut').innerHTML='<div class="pcard"><video src="'+std.url+'" controls autoplay muted loop playsinline style="width:100%;display:block;background:#000"></video><div class="pf"><span>'+fn+'</span><a href="'+std.url+'" download="'+fn+'" target="_blank" style="text-decoration:none"><button>Download</button></a></div></div>';
+          let client=''; try{ client=activeBrand().name||''; }catch(e){}
+          HDB.add({ts:Date.now(),fn:fn,client:client,dataURL:std.url,kind:'video'});
+          return;
+        }
+        if(s==='failed'||s==='nsfw'){ throw new Error('video '+s); }
+        st.textContent='Step 2/2 — lip-syncing the video… ('+tkEl(t0)+')'; setTimeout(poll,8000);
+      }catch(e){ tkBusy=false; $('tkGenBtn').disabled=false; st.className='status'; st.textContent='Stopped — '+e.message; }
+    };
+    setTimeout(poll,8000);
+  }catch(e){ tkBusy=false; $('tkGenBtn').disabled=false; st.className='status'; st.textContent='Error — '+e.message; }
+};
 
 /* ---------- STYLE REFERENCE GENERATOR ---------- */
 let sgPdfData='', sgRefsData=[], sgLogoData='', sgLogoOverride=false, sgBusy=false;

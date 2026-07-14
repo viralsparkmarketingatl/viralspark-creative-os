@@ -532,17 +532,25 @@ canvas#stage{display:none}
             <button class="btn" id="muModeVoice" type="button" style="flex:1">🗣️ Voice &amp; Speech</button>
           </div>
           <div id="muMusicPane">
+          <label class="f">Music engine — pick which Apiframe model generates it</label>
+          <select id="muEngine">
+            <option value="suno">🎵 Suno</option>
+            <option value="udio">🎚️ Udio</option>
+            <option value="mureka">🎹 Mureka</option>
+            <option value="producer">🎛️ Producer (FUZZ)</option>
+            <option value="lyria">🎼 Lyria 3 Pro</option>
+            <option value="elevenlabs">🔊 ElevenLabs Music</option>
+          </select>
+          <div class="hint" id="muEngineDesc" style="margin-top:4px;margin-bottom:12px"></div>
           <label class="f">Describe your scene / clip / vibe</label>
           <textarea id="muScene" style="min-height:120px" placeholder="e.g. A girl is lost after dark. Hooded figures step out of the shadows and walk toward her. I want dread that builds, then a hit the moment they appear."></textarea>
           <label class="f" style="margin-top:8px">Extra direction (optional)</label>
           <input id="muExtra" placeholder="e.g. keep it under 60s, orchestral, no drums until the end">
           <label style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer"><input type="checkbox" id="muVocals"> <span class="f" style="margin:0">I want vocals / lyrics (leave off for a film-style instrumental score)</span></label>
 
-          <label class="f" style="margin-top:12px">Reference track (optional) — give Suno sonic context</label>
-          <div class="actions" style="margin:0 0 4px"><button class="btn" id="muRefBtn" type="button" style="flex:1">📤 Upload a reference track</button></div>
-          <input id="muRefFile" type="file" accept="audio/*" style="display:none">
-          <input id="muRefDesc" placeholder="…and/or describe how it should sound (this steers my prompt now)">
-          <div class="hint" id="muRefName" style="margin-top:2px">The uploaded track becomes Suno's style reference (activates when your Suno provider is connected). The description above steers my prompt right away.</div>
+          <label class="f" style="margin-top:12px">Reference sound (optional) — describe a track to match</label>
+          <input id="muRefDesc" placeholder="e.g. warm Rhodes, vinyl crackle, lo-fi head-nod, 82 bpm">
+          <div class="hint" style="margin-top:2px">Apiframe's music API doesn't take a reference-audio <i>file</i>, so describe the sound in words — I fold it into the prompt the engine actually uses. (Reference-voice upload lives in the Voice tab, where cloning is supported.)</div>
 
           <div class="actions"><button class="btn primary full" id="muCraftBtn">🎬 Craft the music prompt</button></div>
           <div class="status" id="muStatus">Tell me what you're scoring and I'll build the prompt.</div>
@@ -561,7 +569,16 @@ canvas#stage{display:none}
             </select>
             <label class="f" style="margin-top:8px">Voice</label>
             <select id="muTtsVoice"><option value="">— loading voices… —</option></select>
-            <div class="hint" style="margin-top:2px">Presets + any voice you cloned in Talking Spokesperson. To clone a new one, use the Talking Spokesperson tab.</div>
+            <div class="hint" style="margin-top:2px">Built-in presets + any voice you've cloned. Clone your own below.</div>
+            <div class="actions" style="margin:6px 0 0"><button class="btn" id="muVClone" type="button" style="flex:1">🎙️ Clone a voice from a reference clip</button></div>
+            <div id="muVCloneWrap" style="display:none;margin-top:8px;padding:10px;border:1px solid var(--border);border-radius:10px">
+              <label class="f">Voice name</label>
+              <input id="muVCloneName" placeholder="e.g. Jason — Natural">
+              <div class="actions" style="margin:6px 0"><button class="btn" id="muVCloneFileBtn" type="button" style="flex:1">📤 Upload reference voice audio (10s–3min, clear speech)</button></div>
+              <input id="muVCloneFile" type="file" accept="audio/*" style="display:none">
+              <button class="btn primary full" id="muVCloneGo" disabled>Clone Voice (~1–2 min)</button>
+              <div class="hint" id="muVCloneStatus" style="margin-top:4px"></div>
+            </div>
             <div class="actions"><button class="btn primary full" id="muTtsBtn">🗣️ Generate Speech</button></div>
             <div class="status" id="muTtsStatus">Type text, pick an engine + voice, then Generate. Auto-saves to History.</div>
             <div id="muTtsOut"></div>
@@ -583,18 +600,9 @@ canvas#stage{display:none}
               <button class="btn" id="muCopyAll" type="button" style="flex:1">Copy all</button>
             </div>
             <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-              <label class="f">Music engine</label>
-              <select id="muEngine">
-                <option value="suno">🎵 Suno</option>
-                <option value="udio">🎚️ Udio</option>
-                <option value="mureka">🎹 Mureka</option>
-                <option value="producer">🎛️ Producer (FUZZ)</option>
-                <option value="lyria">🎼 Lyria 3 Pro</option>
-                <option value="elevenlabs">🔊 ElevenLabs Music</option>
-              </select>
-              <div class="hint" id="muEngineDesc" style="margin-top:4px"></div>
-              <div class="actions" style="margin-top:8px"><button class="btn primary full" id="muGenBtn">🎵 Generate Music</button></div>
-              <div class="status" id="muGenStatus" style="margin-top:8px">Pick an engine above, then Generate. Most return in ~1–2 min and auto-save to History.</div>
+              <div class="hint" style="margin-bottom:6px">Generating with <b id="muEngineActive">Suno</b> — change the engine on the left.</div>
+              <div class="actions"><button class="btn primary full" id="muGenBtn">🎵 Generate Music</button></div>
+              <div class="status" id="muGenStatus" style="margin-top:8px">Craft a prompt, choose your engine, then Generate. Most return in ~1–2 min and auto-save to History.</div>
               <div id="muGenOut"></div>
             </div>
           </div>
@@ -1984,7 +1992,7 @@ const MU_ENGINES={
   elevenlabs:'ElevenLabs Music — studio-grade, long-form composition (up to ~5 min). Best for polished, professional production and longer pieces.'
 };
 function muEngineName(e){ return {suno:'Suno',udio:'Udio',mureka:'Mureka',producer:'Producer',lyria:'Lyria 3 Pro',elevenlabs:'ElevenLabs Music'}[e]||'Suno'; }
-function muUpdateEngine(){ const e=$('muEngine')?$('muEngine').value:'suno'; if($('muEngineDesc')) $('muEngineDesc').textContent=MU_ENGINES[e]||''; }
+function muUpdateEngine(){ const e=$('muEngine')?$('muEngine').value:'suno'; if($('muEngineDesc')) $('muEngineDesc').textContent=MU_ENGINES[e]||''; if($('muEngineActive')) $('muEngineActive').textContent=muEngineName(e); }
 if($('muEngine')) $('muEngine').addEventListener('change',muUpdateEngine); muUpdateEngine();
 // one-click generation via Apiframe v2 (Suno / Udio / Mureka / Producer / Lyria / ElevenLabs)
 let muGenBusy=false;
@@ -2049,6 +2057,34 @@ async function muLoadTtsVoices(){
   sel.innerHTML=all.map(v=>'<option value="'+v.voice_id+'" data-type="'+(v.voice_type||'preset')+'">'+v.name+(v.voice_type==='element'?' (cloned)':'')+'</option>').join('');
   muTtsVoicesLoaded=true;
 }
+// clone a reference voice inline (reuses the Higgsfield voice_clone backend)
+let muVCloneUrl='';
+if($('muVClone')) $('muVClone').onclick=()=>{ const w=$('muVCloneWrap'); if(w) w.style.display=(w.style.display==='none')?'block':'none'; };
+if($('muVCloneName')) $('muVCloneName').oninput=()=>{ if($('muVCloneGo')) $('muVCloneGo').disabled=!(($('muVCloneName').value||'').trim()&&muVCloneUrl); };
+if($('muVCloneFileBtn')) $('muVCloneFileBtn').onclick=()=>{ if($('muVCloneFile')) $('muVCloneFile').click(); };
+if($('muVCloneFile')) $('muVCloneFile').onchange=async()=>{
+  const f=$('muVCloneFile').files[0]; if(!f) return; const st=$('muVCloneStatus');
+  if(f.size>48*1024*1024){ if(st) st.textContent='Audio too big (>48MB) — use a shorter clip.'; return; }
+  try{
+    const url=await fileToURL(f); if(st) st.textContent='Hosting audio…';
+    const ext=(f.name.split('.').pop()||'mp3').toLowerCase();
+    muVCloneUrl=await bunnyUpload(url,'voice-src',ext);
+    if(st) st.textContent='Audio ready. Name it and clone.';
+    if($('muVCloneGo')) $('muVCloneGo').disabled=!(($('muVCloneName').value||'').trim()&&muVCloneUrl);
+  }catch(e){ if(st) st.textContent='Could not host audio — '+e.message; }
+};
+if($('muVCloneGo')) $('muVCloneGo').onclick=async()=>{
+  const name=($('muVCloneName').value||'').trim(); const st=$('muVCloneStatus');
+  if(!name||!muVCloneUrl) return; $('muVCloneGo').disabled=true; if(st) st.textContent='Cloning "'+name+'"…';
+  try{
+    const r=await higgsCall({action:'voice_clone',name,audioUrl:muVCloneUrl});
+    if(!r.voice_id) throw new Error('no voice id');
+    if(typeof tkSaveVoice==='function') tkSaveVoice({voice_id:r.voice_id,name:name,voice_type:'element'});
+    muTtsVoicesLoaded=false; await muLoadTtsVoices(); if($('muTtsVoice')) $('muTtsVoice').value=r.voice_id;
+    if(st) st.textContent='✅ Cloned & selected! It may take ~1–2 min to finish training before it sounds right.';
+    muVCloneUrl=''; $('muVCloneName').value='';
+  }catch(e){ if(st) st.textContent='Clone error — '+e.message; $('muVCloneGo').disabled=false; }
+};
 let muTtsBusy=false;
 if($('muTtsBtn')) $('muTtsBtn').onclick=async()=>{
   if(muTtsBusy) return;

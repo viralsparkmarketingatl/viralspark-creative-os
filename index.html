@@ -338,14 +338,16 @@ canvas#stage{display:none}
             <input id="vidImgFile" type="file" accept="image/*" style="display:none">
             <img id="vidImgPreview" style="display:none;max-width:100%;border-radius:10px;margin-top:8px" alt="">
 
-            <label class="f" style="margin-top:12px">Ending image (optional) — morph start → end</label>
-            <div class="actions" style="margin:0 0 6px">
-              <button class="btn" id="vidEndImgUploadBtn" type="button" style="flex:1">📤 Upload an ending image</button>
+            <div id="vidEndWrap" style="display:none">
+              <label class="f" style="margin-top:12px">Ending image (optional) — morph start → end</label>
+              <div class="actions" style="margin:0 0 6px">
+                <button class="btn" id="vidEndImgUploadBtn" type="button" style="flex:1">📤 Upload an ending image</button>
+              </div>
+              <input id="vidEndImgUrl" placeholder="…or paste a public image URL">
+              <div class="hint" style="margin-top:2px">Give a start AND end frame and the video interpolates between them. Available on <b>Kling v3.0</b>, <b>Wan 2.7</b>, and <b>Seedance 2.0</b>.</div>
+              <input id="vidEndImgFile" type="file" accept="image/*" style="display:none">
+              <img id="vidEndImgPreview" style="display:none;max-width:100%;border-radius:10px;margin-top:8px" alt="">
             </div>
-            <input id="vidEndImgUrl" placeholder="…or paste a public image URL">
-            <div class="hint" style="margin-top:2px">Give a start AND end frame and the video interpolates between them. Works with <b>Kling v3.0</b>, <b>Wan 2.7</b>, and <b>Seedance 2.0</b> (ignored by Turbo / text-only models).</div>
-            <input id="vidEndImgFile" type="file" accept="image/*" style="display:none">
-            <img id="vidEndImgPreview" style="display:none;max-width:100%;border-radius:10px;margin-top:8px" alt="">
           </div>
           <label class="f">Prompt (describe the video — pre-loaded, edit or just Generate)</label>
           <textarea id="vidPrompt" style="min-height:120px"></textarea>
@@ -1490,6 +1492,14 @@ if($('vidEndImgFile')) $('vidEndImgFile').onchange=async()=>{
     if(st){ st.className='status'; st.textContent='End image hosted & ready.'; }
   }catch(e){ if(st){ st.className='status'; st.textContent='Could not host that image — '+e.message; } }
 };
+// only Kling v3.0 / Wan 2.7 / Seedance 2.0 support an end frame — show that field only for them
+const VID_ENDFRAME_MODELS=['kling3_0','wan2_7','seedance_2_0'];
+function vidToggleEnd(){
+  const m=$('vidModel')?$('vidModel').value:''; const wrap=$('vidEndWrap'); if(!wrap) return;
+  wrap.style.display=VID_ENDFRAME_MODELS.indexOf(m)>=0?'block':'none';
+}
+if($('vidModel')) $('vidModel').addEventListener('change',vidToggleEnd);
+vidToggleEnd();
 async function higgsCall(payload){
   const r=await fetch(higgsEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   const d=await r.json().catch(()=>({error:'bad response'}));

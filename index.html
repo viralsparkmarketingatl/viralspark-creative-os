@@ -157,7 +157,7 @@ canvas#stage{display:none}
     <button class="navbtn" data-screen="brandkits"><span class="ic">◉</span> Brand Kits</button>
     <button class="navbtn" data-screen="templates"><span class="ic">▤</span> Templates</button>
     <button class="navbtn soon" disabled><span class="ic">✎</span> Prompt Library <span class="tag">Soon</span></button>
-    <button class="navbtn soon" disabled><span class="ic">↗</span> Publishing <span class="tag">Soon</span></button>
+    <button class="navbtn" data-screen="publish"><span class="ic">↗</span> Publishing</button>
     <div class="navlabel">System</div>
     <button class="navbtn" data-screen="settings"><span class="ic">⚙</span> Settings</button>
   </aside>
@@ -493,6 +493,50 @@ canvas#stage{display:none}
       </div>
     </section>
 
+    <!-- PUBLISHING (Buffer) -->
+    <section class="screen" id="screen-publish">
+      <div class="head">
+        <div class="eyebrow">Distribute</div>
+        <h1 class="title">Publishing</h1>
+        <p class="subt">Push anything you've made straight to your clients' social channels through Buffer. Pick channels, drop in a graphic or video, write the caption, and add it to the queue or schedule it.</p>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <label class="f">1 · Channels</label>
+          <div class="actions" style="margin:0 0 6px"><button class="btn" id="pbLoadBtn" type="button" style="flex:1">🔄 Load my Buffer channels</button></div>
+          <div id="pbChannels" class="hint">Click “Load my Buffer channels” to pull your connected accounts.</div>
+
+          <label class="f" style="margin-top:14px">2 · Media (optional — add several for a carousel)</label>
+          <div class="actions" style="margin:0 0 6px">
+            <button class="btn" id="pbUploadBtn" type="button" style="flex:1">📤 Upload image/video</button>
+            <button class="btn" id="pbHistoryBtn" type="button" style="flex:1">🕘 From History</button>
+          </div>
+          <input id="pbMediaUrl" placeholder="…or paste a public media URL, then press Enter">
+          <input id="pbMediaFile" type="file" accept="image/*,video/*" multiple style="display:none">
+          <div id="pbMediaPreview" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+          <div id="pbHistoryPick" style="display:none;max-height:180px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:8px;margin-top:6px"></div>
+
+          <label class="f" style="margin-top:14px">3 · Caption</label>
+          <div class="actions" style="margin:0 0 6px">
+            <button class="btn" id="pbCaptionBtn" type="button" style="flex:1">✨ Write caption for me (reads your media + brand)</button>
+          </div>
+          <div class="hint" style="margin:-2px 0 4px">Uses the client picked at the top of the Generator (its voice + CTA). Optionally type a topic below first to steer it.</div>
+          <textarea id="pbText" style="min-height:120px" placeholder="Write your post… or hit ✨ to draft it from your media."></textarea>
+
+          <label class="f" style="margin-top:8px">4 · When</label>
+          <div class="kv" style="gap:10px">
+            <div style="flex:1"><select id="pbMode"><option value="addToQueue">Add to next queue slot</option><option value="customScheduled">Schedule for a specific time</option></select></div>
+            <div style="flex:1"><input id="pbDue" type="datetime-local" style="display:none"></div>
+          </div>
+          <div class="actions"><button class="btn primary full" id="pbPostBtn">Publish to Buffer</button></div>
+        </div>
+        <div class="card">
+          <div class="status" id="pbStatus">Load your channels to begin.</div>
+          <div id="pbResults"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- STYLE REFERENCE GENERATOR -->
     <section class="screen" id="screen-stylegen">
       <div class="head">
@@ -682,6 +726,8 @@ if(!LS.get('vs_script_endpoint','')) LS.set('vs_script_endpoint','https://creati
 if(!LS.get('vs_stylegen_endpoint','')) LS.set('vs_stylegen_endpoint','https://creative-os-api.vercel.app/api/brandkit-styles');
 if(LS.get('vs_higgs_endpoint','').indexOf('higgsfield-mcp')<0) LS.set('vs_higgs_endpoint','https://creative-os-api.vercel.app/api/higgsfield-mcp');
 if(!LS.get('vs_bunny_endpoint','')) LS.set('vs_bunny_endpoint','https://creative-os-api.vercel.app/api/bunny-upload');
+if(!LS.get('vs_buffer_endpoint','')) LS.set('vs_buffer_endpoint','https://creative-os-api.vercel.app/api/buffer-publish');
+if(!LS.get('vs_caption_endpoint','')) LS.set('vs_caption_endpoint','https://creative-os-api.vercel.app/api/caption');
 
 /* ---------- HISTORY (auto-save every generated image to the browser's own database) ---------- */
 /* IndexedDB survives refresh / closing the tab / phone calls — nothing is lost until the user clears it. */
@@ -1727,6 +1773,113 @@ if($('tkGenBtn')) $('tkGenBtn').onclick=async()=>{
     };
     setTimeout(poll,8000);
   }catch(e){ tkBusy=false; $('tkGenBtn').disabled=false; st.className='status'; st.textContent='Error — '+e.message; }
+};
+
+/* ---------- PUBLISHING (Buffer) ---------- */
+function pbEndpoint(){ return LS.get('vs_buffer_endpoint','https://creative-os-api.vercel.app/api/buffer-publish'); }
+async function pbCall(payload){
+  const r=await fetch(pbEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const d=await r.json().catch(()=>({error:'bad response'}));
+  if(!r.ok) throw new Error(d.error||('HTTP '+r.status));
+  return d;
+}
+let pbMedia=[]; // [{url,type}]
+const PB_ICON={twitter:'𝕏',x:'𝕏',facebook:'📘',instagram:'📸',linkedin:'💼',tiktok:'🎵',threads:'🧵',bluesky:'🦋',pinterest:'📌',youtube:'▶️',googlebusiness:'🏢',mastodon:'🐘'};
+let pbChannelsCache=[];
+async function pbLoadChannels(){
+  const box=$('pbChannels'); const st=$('pbStatus');
+  box.innerHTML='Loading…'; if(st){ st.className='status busy'; st.textContent='Fetching your Buffer channels…'; }
+  try{
+    const d=await pbCall({action:'channels'});
+    pbChannelsCache=d.channels||[];
+    if(!pbChannelsCache.length){ box.innerHTML='<span style="color:var(--light)">No channels found on this Buffer account.</span>'; if(st){ st.className='status'; st.textContent='No channels connected in Buffer.'; } return; }
+    box.innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:6px"><button class="btn" id="pbAll" type="button" style="padding:4px 10px">Select all</button><button class="btn" id="pbNone" type="button" style="padding:4px 10px">Clear</button></div>'
+      +pbChannelsCache.map(c=>'<label style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid var(--border);cursor:pointer"><input type="checkbox" class="pbCh" value="'+c.id+'"><span>'+(PB_ICON[(c.service||'').toLowerCase()]||'🔗')+'</span><span>'+(c.name||c.service||c.id)+'</span><span style="color:var(--light);font-size:12px">'+(c.service||'')+'</span></label>').join('');
+    $('pbAll').onclick=()=>box.querySelectorAll('.pbCh').forEach(x=>x.checked=true);
+    $('pbNone').onclick=()=>box.querySelectorAll('.pbCh').forEach(x=>x.checked=false);
+    if(st){ st.className='status'; st.textContent=pbChannelsCache.length+' channels loaded. Pick some, add your post, and publish.'; }
+  }catch(e){ box.innerHTML='<span style="color:#c0392b">'+e.message+'</span>'; if(st){ st.className='status'; st.textContent='Could not load channels — '+e.message; } }
+}
+if($('pbLoadBtn')) $('pbLoadBtn').onclick=pbLoadChannels;
+function pbRenderMedia(){
+  const box=$('pbMediaPreview'); if(!box) return;
+  box.innerHTML=pbMedia.map((m,i)=>'<div style="position:relative">'+(m.type==='video'
+      ? '<video src="'+m.url+'" muted style="width:70px;height:70px;object-fit:cover;border-radius:8px"></video>'
+      : '<img src="'+m.url+'" style="width:70px;height:70px;object-fit:cover;border-radius:8px">')
+    +'<button data-i="'+i+'" class="pbRm" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;border:none;background:#c0392b;color:#fff;cursor:pointer;line-height:1;font-size:12px">×</button></div>').join('');
+  box.querySelectorAll('.pbRm').forEach(b=>b.onclick=()=>{ pbMedia.splice(+b.dataset.i,1); pbRenderMedia(); });
+}
+function pbAddMedia(url,type){ if(!url) return; type=type||( /\.(mp4|mov|webm|m4v)(\?|$)/i.test(url)?'video':'image'); if(!pbMedia.some(m=>m.url===url)) pbMedia.push({url,type}); pbRenderMedia(); }
+if($('pbMediaUrl')) $('pbMediaUrl').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=($('pbMediaUrl').value||'').trim(); if(v){ pbAddMedia(v); $('pbMediaUrl').value=''; } } });
+if($('pbUploadBtn')) $('pbUploadBtn').onclick=()=>{ if($('pbMediaFile')) $('pbMediaFile').click(); };
+if($('pbMediaFile')) $('pbMediaFile').onchange=async()=>{
+  const files=[...$('pbMediaFile').files]; if(!files.length) return; const st=$('pbStatus');
+  for(const f of files){
+    const isVid=/^video\//.test(f.type);
+    if(f.size>48*1024*1024){ if(st){ st.className='status'; st.textContent=f.name+' is over 48MB — skipped.'; } continue; }
+    try{
+      let url=await fileToURL(f); if(!isVid) url=await resizeDataURL(url,1600);
+      if(st){ st.className='status busy'; st.textContent='Hosting '+f.name+'…'; }
+      const ext=(f.name.split('.').pop()||(isVid?'mp4':'jpg')).toLowerCase();
+      const pub=await bunnyUpload(url,'publish',ext); pbAddMedia(pub,isVid?'video':'image');
+    }catch(e){ if(st){ st.className='status'; st.textContent='A file failed — '+e.message; } }
+  }
+  $('pbMediaFile').value='';
+  if(st){ st.className='status'; st.textContent=pbMedia.length+' media item'+(pbMedia.length===1?'':'s')+' ready.'; }
+};
+if($('pbHistoryBtn')) $('pbHistoryBtn').onclick=async()=>{
+  const box=$('pbHistoryPick'); if(box.style.display==='block'){ box.style.display='none'; return; }
+  box.style.display='block'; box.innerHTML='Loading History…';
+  const items=(await HDB.all()).sort((a,b)=>b.ts-a.ts).slice(0,60);
+  if(!items.length){ box.innerHTML='<span style="color:var(--light)">Nothing in History yet.</span>'; return; }
+  box.innerHTML='<div class="hint" style="margin-bottom:6px">Click items to add them (great for carousels).</div><div style="display:flex;flex-wrap:wrap;gap:6px">'+items.map((it,i)=>
+    '<div class="pbHi" data-i="'+i+'" style="cursor:pointer;width:64px">'+(it.kind==='video'
+      ? '<video src="'+it.dataURL+'" muted style="width:64px;height:64px;object-fit:cover;border-radius:8px"></video>'
+      : '<img src="'+it.dataURL+'" style="width:64px;height:64px;object-fit:cover;border-radius:8px">')+'</div>').join('')+'</div>';
+  box.querySelectorAll('.pbHi').forEach(el=>el.onclick=async()=>{
+    const it=items[+el.dataset.i]; const st=$('pbStatus'); el.style.opacity='.4';
+    try{
+      let url=it.dataURL;
+      if(/^data:/.test(url)){ if(st){ st.className='status busy'; st.textContent='Hosting that item on your CDN…'; } url=await bunnyUpload(url,'publish',it.kind==='video'?'mp4':'jpg'); }
+      pbAddMedia(url,it.kind==='video'?'video':'image');
+      if(st){ st.className='status'; st.textContent=pbMedia.length+' media item'+(pbMedia.length===1?'':'s')+' selected.'; }
+    }catch(e){ el.style.opacity='1'; if(st){ st.className='status'; st.textContent='Could not use that item — '+e.message; } }
+  });
+};
+// ✨ caption generator — Claude reads the selected media + active brand
+if($('pbCaptionBtn')) $('pbCaptionBtn').onclick=async()=>{
+  const st=$('pbStatus'); const imageUrls=pbMedia.filter(m=>m.type!=='video').map(m=>m.url);
+  if(!imageUrls.length && !($('pbText').value||'').trim()){ st.className='status'; st.textContent='Add at least one image (or type a topic) so I can write the caption.'; return; }
+  let brand={}; try{ brand=activeBrand()||{}; }catch(e){}
+  const context=($('pbText').value||'').trim();
+  $('pbCaptionBtn').disabled=true; st.className='status busy'; st.textContent='Writing your caption…';
+  try{
+    const r=await fetch(LS.get('vs_caption_endpoint','https://creative-os-api.vercel.app/api/caption'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({imageUrls,brand,context,platform:'Instagram'})});
+    const d=await r.json().catch(()=>({error:'bad response'}));
+    if(!r.ok||!d.caption) throw new Error(d.error||('HTTP '+r.status));
+    $('pbText').value=d.caption; st.className='status'; st.textContent='Caption ready — edit it if you like, then publish.';
+  }catch(e){ st.className='status'; st.textContent='Caption error — '+e.message; }
+  $('pbCaptionBtn').disabled=false;
+};
+if($('pbMode')) $('pbMode').onchange=()=>{ $('pbDue').style.display=($('pbMode').value==='customScheduled')?'block':'none'; };
+if($('pbPostBtn')) $('pbPostBtn').onclick=async()=>{
+  const channelIds=[...document.querySelectorAll('.pbCh:checked')].map(x=>x.value);
+  const text=($('pbText').value||'').trim();
+  const mode=$('pbMode').value; const st=$('pbStatus');
+  if(!channelIds.length){ st.className='status'; st.textContent='Pick at least one channel.'; return; }
+  if(!text && !pbMedia.length){ st.className='status'; st.textContent='Add a caption or media.'; return; }
+  let dueAt=''; if(mode==='customScheduled'){ const v=$('pbDue').value; if(!v){ st.className='status'; st.textContent='Pick a date/time to schedule.'; return; } dueAt=new Date(v).toISOString(); }
+  $('pbPostBtn').disabled=true; st.className='status busy'; st.textContent='Publishing to '+channelIds.length+' channel(s)…';
+  $('pbResults').innerHTML='';
+  try{
+    const d=await pbCall({action:'post',channelIds,text,media:pbMedia,mode,dueAt});
+    const rows=(d.results||[]).map(r=>{ const c=pbChannelsCache.find(x=>x.id===r.channelId)||{}; const nm=c.name||c.service||r.channelId;
+      return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)"><span>'+(r.ok?'✅':'⚠️')+'</span><span>'+nm+'</span><span style="color:var(--light);font-size:12px">'+(r.ok?(mode==='customScheduled'?'scheduled':'queued'):(r.error||'failed'))+'</span></div>'; }).join('');
+    $('pbResults').innerHTML=rows;
+    const ok=(d.results||[]).filter(r=>r.ok).length;
+    st.className='status'; st.textContent=ok+' of '+(d.results||[]).length+' published'+(mode==='customScheduled'?' (scheduled)':' (added to queue)')+'.';
+  }catch(e){ st.className='status'; st.textContent='Error — '+e.message; }
+  $('pbPostBtn').disabled=false;
 };
 
 /* ---------- STYLE REFERENCE GENERATOR ---------- */

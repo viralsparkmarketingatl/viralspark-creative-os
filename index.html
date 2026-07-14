@@ -147,6 +147,7 @@ canvas#stage{display:none}
     <button class="navbtn active" data-screen="generate"><span class="ic">⚡</span> Graphic Design Generator</button>
     <button class="navbtn" data-screen="scripts"><span class="ic">✍</span> Script Generator</button>
     <button class="navbtn" data-screen="video"><span class="ic">🎬</span> Video Generator</button>
+    <button class="navbtn" data-screen="motion"><span class="ic">🕹️</span> Motion Control</button>
     <button class="navbtn" data-screen="stylegen"><span class="ic">🎨</span> Style Ref Generator</button>
     <button class="navbtn soon" disabled><span class="ic">◈</span> Ad Generator <span class="tag">Soon</span></button>
     <div class="navlabel">Library</div>
@@ -325,16 +326,29 @@ canvas#stage{display:none}
       </div>
       <div class="grid2">
         <div class="card">
-          <div id="vidImgWrap" style="display:none">
-            <label class="f">Starting image (image-to-video — coming soon)</label>
-            <div class="kv" style="align-items:center;gap:12px;margin-bottom:8px">
-              <img id="vidImgPreview" style="height:64px;max-width:120px;border-radius:8px;background:rgba(0,0,0,.08);object-fit:cover;display:none" alt="">
-              <input id="vidImgFile" type="file" accept="image/*">
+          <div id="vidImgWrap">
+            <label class="f">Starting image (optional) — animate a graphic into video</label>
+            <div class="actions" style="margin:0 0 6px">
+              <button class="btn" id="vidImgUploadBtn" type="button" style="flex:1">📤 Upload an image to animate</button>
             </div>
-            <input id="vidImgUrl" placeholder="https://…/graphic.jpg">
+            <input id="vidImgUrl" placeholder="…or paste a public image URL (leave blank for text-to-video)">
+            <div class="hint" style="margin-top:2px">Upload your own graphic (it's hosted instantly on your Bunny CDN and animated), or paste a public image URL. Leave both blank to generate from the prompt alone.</div>
+            <input id="vidImgFile" type="file" accept="image/*" style="display:none">
+            <img id="vidImgPreview" style="display:none;max-width:100%;border-radius:10px;margin-top:8px" alt="">
           </div>
           <label class="f">Prompt (describe the video — pre-loaded, edit or just Generate)</label>
           <textarea id="vidPrompt" style="min-height:120px"></textarea>
+          <label class="f" style="margin-top:6px">Video model</label>
+          <select id="vidModel">
+            <option value="kling3_0_turbo">⚡ Kling 3.0 Turbo — fast &amp; cheap (default)</option>
+            <option value="veo3_1">🏆 Google Veo 3.1 — top cinematic + audio</option>
+            <option value="cinematic_studio_3_0">🎬 Cinema Studio 3.0 — cinema-grade, up to 4K</option>
+            <option value="seedance_2_0">🧬 Seedance 2.0 — reference / identity, up to 4K</option>
+            <option value="kling3_0">🎥 Kling v3.0 — multi-shot, motion transfer</option>
+            <option value="minimax_hailuo">😀 Minimax Hailuo — natural physics + facial emotion</option>
+            <option value="grok_video">🗣️ Grok Video — text+image, audio</option>
+            <option value="veo3_1_lite">💨 Veo 3.1 Lite — fast budget batches</option>
+          </select>
           <div class="kv" style="gap:10px;margin-top:6px">
             <div style="flex:1"><label class="f">Aspect</label><select id="vidAspect"><option value="9:16">9:16 — Reels / TikTok</option><option value="16:9">16:9 — Landscape</option><option value="1:1">1:1 — Square</option></select></div>
             <div style="flex:1"><label class="f">Length</label><select id="vidDur"><option value="5">5 seconds</option><option value="10">10 seconds</option></select></div>
@@ -347,6 +361,45 @@ canvas#stage{display:none}
         <div class="card">
           <div class="status" id="vidStatus">Ready. Just hit Generate — no settings needed.</div>
           <div id="vidOut"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MOTION CONTROL (Kling 3.0) -->
+    <section class="screen" id="screen-motion">
+      <div class="head">
+        <div class="eyebrow">Puppeteer</div>
+        <h1 class="title">Motion Control</h1>
+        <p class="subt">Take a <b>character image</b> and make it move exactly like a <b>reference video</b> — same motion, same camera. Perfect for putting your product, mascot, or spokesperson into a proven-viral movement. Powered by Kling 3.0 Motion Control.</p>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <label class="f">1 · Character image — who/what moves</label>
+          <div class="actions" style="margin:0 0 6px">
+            <button class="btn" id="mcImgBtn" type="button" style="flex:1">📤 Upload character image</button>
+          </div>
+          <input id="mcImgUrl" placeholder="…or paste a public image URL">
+          <img id="mcImgPreview" style="display:none;max-width:100%;border-radius:10px;margin-top:8px" alt="">
+          <input id="mcImgFile" type="file" accept="image/*" style="display:none">
+
+          <label class="f" style="margin-top:14px">2 · Driving video — the motion to copy</label>
+          <div class="actions" style="margin:0 0 6px">
+            <button class="btn" id="mcVidBtn" type="button" style="flex:1">📤 Upload reference video</button>
+          </div>
+          <input id="mcVidUrl" placeholder="…or paste a public video URL">
+          <video id="mcVidPreview" style="display:none;max-width:100%;border-radius:10px;margin-top:8px" muted controls playsinline></video>
+          <input id="mcVidFile" type="file" accept="video/*" style="display:none">
+
+          <div class="kv" style="gap:10px;margin-top:12px">
+            <div style="flex:1"><label class="f">Quality</label><select id="mcRes"><option value="720p">720p — cheaper</option><option value="1080p">1080p — sharper</option></select></div>
+            <div style="flex:1"><label class="f">Background from</label><select id="mcScene"><option value="image">Character image</option><option value="video">Reference video</option></select></div>
+          </div>
+          <div class="actions"><button class="btn primary full" id="mcGenBtn">Generate Motion Clip</button></div>
+          <div class="hint">Keep the reference video <b>under 50MB</b> for best results. Renders take about <b>2–5 minutes</b> and auto-save to History.</div>
+        </div>
+        <div class="card">
+          <div class="status" id="mcStatus">Upload a character image and a driving video, then hit Generate.</div>
+          <div id="mcOut"></div>
         </div>
       </div>
     </section>
@@ -539,6 +592,7 @@ if(!LS.get('vs_image_endpoint','')) LS.set('vs_image_endpoint','https://creative
 if(!LS.get('vs_script_endpoint','')) LS.set('vs_script_endpoint','https://creative-os-api.vercel.app/api/generate-script');
 if(!LS.get('vs_stylegen_endpoint','')) LS.set('vs_stylegen_endpoint','https://creative-os-api.vercel.app/api/brandkit-styles');
 if(LS.get('vs_higgs_endpoint','').indexOf('higgsfield-mcp')<0) LS.set('vs_higgs_endpoint','https://creative-os-api.vercel.app/api/higgsfield-mcp');
+if(!LS.get('vs_bunny_endpoint','')) LS.set('vs_bunny_endpoint','https://creative-os-api.vercel.app/api/bunny-upload');
 
 /* ---------- HISTORY (auto-save every generated image to the browser's own database) ---------- */
 /* IndexedDB survives refresh / closing the tab / phone calls — nothing is lost until the user clears it. */
@@ -1233,6 +1287,15 @@ if($('histClear'))$('histClear').onclick=historyClear;
 const VIDEO_DEMO_PROMPT="Warm, cinematic vertical social ad for a veterinary urgent care clinic. A happy golden retriever is gently examined by a friendly, smiling vet in a bright, modern clinic. Soft natural light, reassuring and hopeful mood, subtle slow camera push-in, clean premium look. Warm cream tones with deep ruby-red accents.";
 let vidModeVal='text', vidPolling=false, vidT0=0;
 function higgsEndpoint(){ return LS.get('vs_higgs_endpoint','https://creative-os-api.vercel.app/api/higgsfield-mcp'); }
+function bunnyEndpoint(){ return LS.get('vs_bunny_endpoint','https://creative-os-api.vercel.app/api/bunny-upload'); }
+// Upload a data-URL (image/video/audio) to Bunny CDN -> returns a PUBLIC https URL.
+// This is what lets Higgsfield "pull" our own graphics (media_import_url needs a public URL).
+async function bunnyUpload(dataURL,folder,ext){
+  const r=await fetch(bunnyEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:dataURL,folder:folder||'uploads',ext:ext||''})});
+  const d=await r.json().catch(()=>({error:'bad response'}));
+  if(!r.ok||!d.url) throw new Error(d.error||('upload failed HTTP '+r.status));
+  return d.url;
+}
 let vidImgData='';
 if($('vidPrompt')) $('vidPrompt').value=VIDEO_DEMO_PROMPT;
 document.querySelectorAll('#vidMode .seg').forEach(b=>b.onclick=()=>{
@@ -1240,12 +1303,18 @@ document.querySelectorAll('#vidMode .seg').forEach(b=>b.onclick=()=>{
   b.classList.add('on'); vidModeVal=b.dataset.mode;
   if($('vidImgWrap')) $('vidImgWrap').style.display=(vidModeVal==='image')?'block':'none';
 });
+if($('vidImgUploadBtn')) $('vidImgUploadBtn').onclick=()=>{ if($('vidImgFile')) $('vidImgFile').click(); };
 if($('vidImgFile')) $('vidImgFile').onchange=async()=>{
   const f=$('vidImgFile').files[0]; if(!f) return;
-  try{ let url=await fileToURL(f); url=await resizeDataURL(url,1280); vidImgData=url;
+  const st=$('vidStatus');
+  try{
+    let url=await fileToURL(f); url=await resizeDataURL(url,1280); vidImgData=url;
     const p=$('vidImgPreview'); if(p){ p.src=url; p.style.display=''; }
-    if($('vidStatus')){ $('vidStatus').className='status'; $('vidStatus').textContent='Image ready. Hit Generate to animate it.'; }
-  }catch(e){ if($('vidStatus')){ $('vidStatus').textContent='Could not read that image — '+e.message; } }
+    if(st){ st.className='status busy'; st.textContent='Hosting your image on the CDN…'; }
+    const publicUrl=await bunnyUpload(url,'video-src','jpg');
+    if($('vidImgUrl')) $('vidImgUrl').value=publicUrl;
+    if(st){ st.className='status'; st.textContent='Image hosted & ready. Hit Generate to animate it.'; }
+  }catch(e){ if(st){ st.className='status'; st.textContent='Could not host that image — '+e.message; } }
 };
 async function higgsCall(payload){
   const r=await fetch(higgsEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
@@ -1256,15 +1325,16 @@ async function higgsCall(payload){
 function vidElapsed(){ const el=Math.floor((Date.now()-vidT0)/1000); return Math.floor(el/60)+':'+String(el%60).padStart(2,'0'); }
 async function runVideo(){
   if(vidPolling) return;
+  const imageUrl=($('vidImgUrl')?($('vidImgUrl').value||'').trim():'');
   const prompt=($('vidPrompt').value||'').trim();
-  if(!prompt){ $('vidStatus').className='status'; $('vidStatus').textContent='Add a prompt first.'; return; }
-  const mode=vidModeVal, imageUrl=vidImgData || ($('vidImgUrl')?($('vidImgUrl').value||'').trim():'');
-  if(mode==='image' && !imageUrl){ $('vidStatus').className='status'; $('vidStatus').textContent='Upload an image (or paste a URL) first.'; return; }
+  if(!prompt && !imageUrl){ $('vidStatus').className='status'; $('vidStatus').textContent='Add a prompt, or a starting-image URL to animate.'; return; }
+  const mode=imageUrl?'image':'text';
   const aspect=$('vidAspect').value, dur=parseInt($('vidDur').value||5);
   $('vidOut').innerHTML=''; $('vidStatus').className='status busy'; $('vidStatus').textContent='Submitting to Higgsfield…';
   vidPolling=true; vidT0=Date.now(); $('vidGenBtn').disabled=true;
   try{
-    const sub=await higgsCall({action:'submit',mode,prompt,imageUrl,aspect_ratio:aspect,duration:dur});
+    const model=$('vidModel')?$('vidModel').value:'kling3_0_turbo';
+    const sub=await higgsCall({action:'submit',mode,prompt,imageUrl,aspect_ratio:aspect,duration:dur,model});
     if(!sub.id) throw new Error('no job id returned');
     const id=sub.id;
     const poll=async()=>{
@@ -1291,6 +1361,72 @@ function finishVideo(url){
   HDB.add({ts:Date.now(),fn:fn,client:client,dataURL:url,kind:'video'});
 }
 if($('vidGenBtn')) $('vidGenBtn').onclick=runVideo;
+
+/* ---------- MOTION CONTROL (Kling 3.0) ---------- */
+let mcPolling=false, mcT0=0;
+function mcElapsed(){ const el=Math.floor((Date.now()-mcT0)/1000); return Math.floor(el/60)+':'+String(el%60).padStart(2,'0'); }
+// character image upload -> Bunny -> fills mcImgUrl
+if($('mcImgBtn')) $('mcImgBtn').onclick=()=>{ if($('mcImgFile')) $('mcImgFile').click(); };
+if($('mcImgFile')) $('mcImgFile').onchange=async()=>{
+  const f=$('mcImgFile').files[0]; if(!f) return; const st=$('mcStatus');
+  try{
+    let url=await fileToURL(f); url=await resizeDataURL(url,1280);
+    const p=$('mcImgPreview'); if(p){ p.src=url; p.style.display=''; }
+    if(st){ st.className='status busy'; st.textContent='Hosting character image…'; }
+    const pub=await bunnyUpload(url,'motion-img','jpg'); $('mcImgUrl').value=pub;
+    if(st){ st.className='status'; st.textContent='Character image ready.'; }
+  }catch(e){ if(st){ st.className='status'; st.textContent='Could not host image — '+e.message; } }
+};
+// driving video upload -> Bunny -> fills mcVidUrl
+if($('mcVidBtn')) $('mcVidBtn').onclick=()=>{ if($('mcVidFile')) $('mcVidFile').click(); };
+if($('mcVidFile')) $('mcVidFile').onchange=async()=>{
+  const f=$('mcVidFile').files[0]; if(!f) return; const st=$('mcStatus');
+  if(f.size>48*1024*1024){ if(st){ st.className='status'; st.textContent='That video is over 48MB — trim it shorter or lower the resolution first.'; } return; }
+  try{
+    const url=await fileToURL(f);
+    const p=$('mcVidPreview'); if(p){ p.src=url; p.style.display=''; }
+    if(st){ st.className='status busy'; st.textContent='Hosting reference video…'; }
+    const ext=(f.name.split('.').pop()||'mp4').toLowerCase();
+    const pub=await bunnyUpload(url,'motion-vid',ext); $('mcVidUrl').value=pub;
+    if(st){ st.className='status'; st.textContent='Reference video ready. Hit Generate.'; }
+  }catch(e){ if(st){ st.className='status'; st.textContent='Could not host video — '+e.message; } }
+};
+async function runMotion(){
+  if(mcPolling) return;
+  const imageUrl=($('mcImgUrl').value||'').trim(), motionVideoUrl=($('mcVidUrl').value||'').trim();
+  if(!imageUrl){ $('mcStatus').className='status'; $('mcStatus').textContent='Add a character image (upload or URL).'; return; }
+  if(!motionVideoUrl){ $('mcStatus').className='status'; $('mcStatus').textContent='Add a driving video (upload or URL).'; return; }
+  const resolution=$('mcRes').value, scene_control=$('mcScene').value;
+  $('mcOut').innerHTML=''; $('mcStatus').className='status busy'; $('mcStatus').textContent='Submitting to Higgsfield…';
+  mcPolling=true; mcT0=Date.now(); $('mcGenBtn').disabled=true;
+  try{
+    const sub=await higgsCall({action:'motion',imageUrl,motionVideoUrl,resolution,scene_control});
+    if(!sub.id) throw new Error('no job id returned');
+    const id=sub.id;
+    const poll=async()=>{
+      if(!mcPolling) return;
+      try{
+        const std=await higgsCall({action:'status',id});
+        const status=(std.status||'').toLowerCase();
+        if(status==='completed' && std.url){ finishMotion(std.url); return; }
+        if(status==='failed'||status==='nsfw'){ throw new Error('generation '+status); }
+        $('mcStatus').textContent='Rendering your motion clip… ~2–5 min ('+mcElapsed()+')';
+        setTimeout(poll,8000);
+      }catch(e){ mcPolling=false; $('mcGenBtn').disabled=false; $('mcStatus').className='status'; $('mcStatus').textContent='Stopped — '+e.message; }
+    };
+    $('mcStatus').textContent='Rendering your motion clip… ~2–5 min (0:00)';
+    setTimeout(poll,8000);
+  }catch(e){ mcPolling=false; $('mcGenBtn').disabled=false; $('mcStatus').className='status'; $('mcStatus').textContent='Error — '+e.message; }
+}
+function finishMotion(url){
+  mcPolling=false; $('mcGenBtn').disabled=false;
+  $('mcStatus').className='status'; $('mcStatus').textContent='Done in '+mcElapsed()+'! Your motion clip is ready — auto-saved to History.';
+  const fn='motion-'+Date.now()+'.mp4';
+  $('mcOut').innerHTML='<div class="pcard"><video src="'+url+'" controls autoplay muted loop playsinline style="width:100%;display:block;background:#000"></video><div class="pf"><span>'+fn+'</span><a href="'+url+'" download="'+fn+'" target="_blank" style="text-decoration:none"><button>Download</button></a></div></div>';
+  let client=''; try{ client=activeBrand().name||''; }catch(e){}
+  HDB.add({ts:Date.now(),fn:fn,client:client,dataURL:url,kind:'video'});
+}
+if($('mcGenBtn')) $('mcGenBtn').onclick=runMotion;
 
 /* ---------- STYLE REFERENCE GENERATOR ---------- */
 let sgPdfData='', sgRefsData=[], sgLogoData='', sgLogoOverride=false, sgBusy=false;

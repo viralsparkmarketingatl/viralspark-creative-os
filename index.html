@@ -1452,7 +1452,7 @@ async function generate(){
     count=files.length;
   } else {
     if(!getEndpoint()){ $('status').textContent='Set your Image API endpoint in Settings first (deploy the creative-os-api folder to Vercel).'; return; }
-    if(mode==='airef' && !styleRefs.length){ $('status').textContent='No style reference loaded — add at least one in the AI panel.'; return; }
+    if(mode==='airef' && !fmt.batch && !styleRefs.length){ $('status').textContent='No style reference loaded — add at least one in the AI panel.'; return; }
     count=Math.min(50,Math.max(1,parseInt($('aiCount').value||4)));
   }
   if(mode==='airef' && fmt.batch){ await runCarousel(); return; }
@@ -1491,7 +1491,8 @@ async function generate(){
     await new Promise(r=>setTimeout(r,0));
   }
   $('status').className='status'; $('status').textContent='Done — '+generated.length+' graphics ready. Click a card to download, or Download All.';
-  } finally { isGenerating=false; if($('genBtn'))$('genBtn').disabled=false; }
+  } catch(e){ $('status').className='status'; $('status').textContent='Error — '+((e&&e.message)||e); }
+  finally { isGenerating=false; if($('genBtn'))$('genBtn').disabled=false; }
 }
 function addPreview(fn,url){
   const d=document.createElement('div');d.className='pcard';

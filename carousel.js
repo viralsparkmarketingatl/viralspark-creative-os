@@ -13,7 +13,8 @@ Structure:
 - Last page = the WRAP-UP / CTA — a closing page (short recap + the brand's OWN call to action). If a CALL-TO-ACTION is provided in the brand kit below, the final page MUST use THAT exact call to action (the brand's real booking/action, address, phone, tagline). NEVER invent a generic CTA like "see a vet" and NEVER copy a CTA from the source blog/topic (it may belong to a different company). The topic/blog is only for the informational content — the CTA always belongs to this brand.
 
 PER-PAGE RULES (apply to EVERY page):
-- SWIPE CUE: every page EXCEPT the final CTA page must include a small, on-brand hand-lettered "swipe" annotation (vary it: "Swipe →", "Keep swiping →", "Swipe to learn more →", "More inside →") to pull the reader to the next slide. The final CTA page shows the call-to-action instead — NO swipe cue on the last page.
+- FINAL SLIDE IS ALWAYS THE CTA: the LAST page is always the call-to-action slide — the brand's own CTA / booking / contact (no swipe cue on it). This is fixed for every carousel and every brand.
+- SWIPE CUE ON EVERY OTHER SLIDE: every page EXCEPT that final CTA page MUST include a small, on-brand hand-lettered swipe cue with a little arrow. VARY the wording naturally so it never feels repetitive — e.g. "Swipe →", "Keep swiping →", "Swipe to learn more →", "More inside →", "Next →". The rule is simply that there's always SOME swipe prompt pulling to the next slide; the exact words can change page to page.
 - SPEAK AS THE BRAND (not a third party): the client IS the service provider. On ANY page, NEVER tell the reader to "call your vet", "see a vet", "visit a clinic/doctor", or any generic/third-party provider — the brand IS that provider. Reframe in the brand's own first-person voice: "signs it's time to come in", "when to come see us", "walk in and we'll help". (e.g. Ruby is an urgent-care vet → a red-flags page says "Red flags — come see us if…" NOT "call your vet if…".) This applies to informational/value pages too, not just the CTA page.
 
 IF N = 1: ignore the multi-page structure above. Instead design ONE complete, self-contained standalone post — a full graphic with a strong headline, brief supporting copy, the key visual/subject, and a clear CTA — all in the exact brand style of the reference.
@@ -115,7 +116,8 @@ module.exports = async function handler(req, res) {
       + (brand.cta ? ('\n\nBRAND CALL-TO-ACTION (use on the final/CTA page EXACTLY — overrides any CTA from the source topic/blog):\n' + brand.cta) : '');
     const size = body.size || '1024x768';
     const quality = body.quality || 'high';
-    let pages = parseInt(body.pages, 10); if (!pages || pages < 2) pages = 3; if (pages > 6) pages = 6;
+    // pages=1 is a valid SINGLE post (GBP / cover). Only fall back to 3 when pages is missing/invalid.
+    let pages = parseInt(body.pages, 10); if (!Number.isFinite(pages) || pages < 1) pages = 3; if (pages > 6) pages = 6;
     const refImages = (Array.isArray(body.refImages) && body.refImages.length)
       ? body.refImages.filter(Boolean)
       : (body.refImage ? [body.refImage] : []);

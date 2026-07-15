@@ -1330,7 +1330,7 @@ async function runCarousel(){
   const items=[...document.querySelectorAll('.batchitem')].map(t=>{
     const i=t.dataset.i; const sel=document.querySelector('.batchstyle[data-i="'+i+'"]');
     const idx=sel?parseInt(sel.value,10):-1;
-    return { text:t.value.trim(), style:(idx>=0&&lib[idx])?lib[idx]:selectedStyle };
+    return { text:t.value.trim(), style:(idx>=0&&lib[idx])?lib[idx]:selectedStyle, photos:(batchPhotos[i]||[]).slice() };
   }).filter(it=>it.text);
   if(!items.length){ $('status').className='status'; $('status').textContent='Add at least one — a blog URL, or a topic + directions.'; return; }
   const extra=$('aiExtra')?$('aiExtra').value.trim():'';
@@ -1345,7 +1345,7 @@ async function runCarousel(){
       const it=items[k];
       const refs=refsWithLogo((it.style && it.style.url)?[it.style.url]:styleRefs.filter(Boolean));
       const url=(it.text.match(/https?:\/\/\S+/)||[''])[0];
-      const payload={brief:it.text+(extra?('\n\nApply to ALL posts in this batch: '+extra):''),blogUrl:url,pages,refImages:refs,brand:brandPayload(it.style),format:fmt.fmt,quality:'high',size:fmt.gen};
+      const payload={brief:it.text+(extra?('\n\nApply to ALL posts in this batch: '+extra):''),blogUrl:url,pages,refImages:refs,subjectImages:(it.photos||[]),brand:brandPayload(it.style),format:fmt.fmt,quality:'high',size:fmt.gen};
       let r=null, skip=null;
       for(let attempt=0;attempt<3;attempt++){
         try{ r=await callCarousel(payload); break; }
@@ -1382,23 +1382,41 @@ async function runCarousel(){
     $('status').className='status'; $('status').textContent='Done — '+items.length+' '+noun+(items.length>1?'s':'')+' ('+generated.length+' images) at '+fmt.w+'×'+fmt.h+'. Download All for everything.';
   }catch(e){ $('status').className='status'; $('status').textContent='Batch stopped — '+e.message+' ('+generated.length+' done). Fix and re-run.'; }
 }
+let batchPhotos={}; // per-item reference photos: { "0":[dataURL,...], ... } keyed by DOM index
+function renderBatchThumbs(i){
+  const wrap=document.querySelector('#batchItems .batchthumbs[data-i="'+i+'"]'); if(!wrap) return;
+  const arr=batchPhotos[i]||[];
+  wrap.innerHTML=arr.map((u,j)=>'<div style="position:relative"><img src="'+u+'" style="width:46px;height:46px;object-fit:cover;border-radius:6px"><button data-i="'+i+'" data-j="'+j+'" class="batchrm" style="position:absolute;top:-5px;right:-5px;width:16px;height:16px;border-radius:50%;border:none;background:#c0392b;color:#fff;cursor:pointer;font-size:11px;line-height:1">×</button></div>').join('');
+  wrap.querySelectorAll('.batchrm').forEach(b=>b.onclick=()=>{ (batchPhotos[b.dataset.i]||[]).splice(+b.dataset.j,1); renderBatchThumbs(b.dataset.i); });
+}
 function renderBatchItems(){
   const c=$('batchItems'); if(!c) return;
   const n=Math.min(100,Math.max(1,parseInt($('carouselCount').value||1)));
   const lib=curLib();
+  const fmt=curFormat()||{}; const fv=$('fmtSel')?$('fmtSel').value:''; const noun=fmt.carousel?'Carousel':(fv==='gbp'?'GBP post':'Post');
   const styleOpts=lib.map((s,i)=>'<option value="'+i+'">Style '+(i+1)+' — '+s.label+'</option>').join('');
   const oldText=[...c.querySelectorAll('.batchitem')].map(t=>t.value);
   const oldStyle=[...c.querySelectorAll('.batchstyle')].map(s=>s.value);
   let html='';
   for(let i=0;i<n;i++){
-    html+='<div class="batchrow"><label class="f" style="margin-top:8px">Carousel '+(i+1)+' — blog/website URL, or topic + directions</label>';
+    html+='<div class="batchrow"><label class="f" style="margin-top:8px">'+noun+' '+(i+1)+' — blog/website URL, or topic + directions</label>';
     html+='<textarea class="batchitem" data-i="'+i+'" placeholder="https://…   OR   Topic: cold-weather pet safety — small dogs, playful tone, end with a Book Now CTA"></textarea>';
-    if(lib.length){ html+='<label class="f">🎨 Style for carousel '+(i+1)+'</label><select class="batchstyle" data-i="'+i+'">'+styleOpts+'</select>'; }
+    if(lib.length){ html+='<label class="f">🎨 Style for '+noun.toLowerCase()+' '+(i+1)+'</label><select class="batchstyle" data-i="'+i+'">'+styleOpts+'</select>'; }
+    html+='<label class="f">📷 Additional photos to incorporate (optional — up to 4)</label>';
+    html+='<div class="actions" style="margin:2px 0"><button class="btn batchphotobtn" data-i="'+i+'" type="button" style="flex:1">📷 Add photos to this '+noun.toLowerCase()+'</button></div>';
+    html+='<input class="batchphotofile" data-i="'+i+'" type="file" accept="image/*" multiple style="display:none"><div class="batchthumbs" data-i="'+i+'" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:2px"></div>';
     html+='</div>';
   }
   c.innerHTML=html;
   c.querySelectorAll('.batchitem').forEach((t,i)=>{ if(oldText[i]!==undefined) t.value=oldText[i]; });
   c.querySelectorAll('.batchstyle').forEach((s,i)=>{ s.value=(oldStyle[i]!==undefined)?oldStyle[i]:'0'; });
+  c.querySelectorAll('.batchphotobtn').forEach(b=>b.onclick=()=>{ const inp=c.querySelector('.batchphotofile[data-i="'+b.dataset.i+'"]'); if(inp) inp.click(); });
+  c.querySelectorAll('.batchphotofile').forEach(inp=>inp.onchange=async()=>{
+    const i=inp.dataset.i; batchPhotos[i]=batchPhotos[i]||[]; const st=$('status');
+    for(const f of [...inp.files]){ if(batchPhotos[i].length>=4){ break; } try{ let u=await fileToURL(f); u=await resizeDataURL(u,1024); batchPhotos[i].push(u); }catch(e){ if(st){ st.textContent='A photo failed — '+e.message; } } }
+    inp.value=''; renderBatchThumbs(i);
+  });
+  for(let i=0;i<n;i++){ if((batchPhotos[i]||[]).length) renderBatchThumbs(i); } // restore thumbs across re-render
 }
 
 /* ---------- GENERATE FLOW ---------- */

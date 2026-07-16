@@ -1115,6 +1115,33 @@ FORMAT: Instagram carousel / social portrait, 1080x1350.`,
   styleLib:(window.BOP_STYLES || []),
   gbpLib:[]
 };
+const DEFAULT_MP = {
+  name:'The MP Organization',
+  colors:[
+    {name:'Ink Black',  hex:'#0A0A0A'},
+    {name:'Off-White',  hex:'#F2F1EC'},
+    {name:'Cloud Gray', hex:'#B0B0B0'},
+    {name:'Steel Gray', hex:'#8C8C8C'},
+    {name:'Slate',      hex:'#3A3A3A'},
+    {name:'White',      hex:'#FFFFFF'}
+  ],
+  guidelines:`THE MP ORGANIZATION — BRAND GUIDELINES (follow exactly).
+BUSINESS: The MP Organization — a real estate DEVELOPMENT, INVESTMENT & PROGRAM MANAGEMENT firm (residential, commercial, industrial). Institutional, premium, disciplined. Positioning lines: "Development with purpose.", "Disciplined execution. Enduring value.", "One coordinated process.", "From planning through completion." Services: Residential (thoughtful communities, quality living), Commercial (strategic spaces, stronger businesses), Industrial (built for performance, designed for growth), Program Management (expert oversight, seamless execution).
+COLORS (STRICT MONOCHROME — use these EXACT hex, NO other colors ever): Ink Black #0A0A0A (dark ground + headline text on light), Off-White/Cream #F2F1EC (light ground; headline text on dark grounds is White #FFFFFF), Cloud Gray #B0B0B0 & Steel Gray #8C8C8C (eyebrows, thin rules, secondary/label text), Slate #3A3A3A, White #FFFFFF. This brand is BLACK & WHITE ONLY — NEVER introduce a color accent. Contrast, typography, and architectural photography carry it.
+TYPOGRAPHY: Headline = a HEAVY grotesque sans (Inter Black / Helvetica-Now / Neue-Haas-style), ALL-CAPS, tight leading, ending in a period ("DEVELOPMENT WITH PURPOSE."). Eyebrow/label = letter-spaced UPPERCASE ("01 / MILESTONE", "05 / SERVICES", "TOTAL GFA"). Body = Inter Regular; stat labels uppercase. SIGNATURE: numbered section eyebrows (0X / LABEL), a thin vertical rule left of a lead line, square bullet markers, stat grids divided by thin vertical rules, outline (line) icons for services.
+LAYOUT — DO: one massive all-caps headline (2-4 lines, ends in a period); a numbered eyebrow (0X / SECTION); architectural/construction/development photography (buildings, sites, skylines, professionals) as a full-bleed side image or framed block; stat rows ("120,794 SF · 36 UNITS · PHASE 02") with thin dividers; outline service icons; the M|P circle logo bottom-left; optional faint blueprint-grid texture on light layouts. DON'T: any color; rounded/playful shapes; clutter; gradients/shadows on type; low-contrast text over busy photos.
+SIGNATURE ELEMENTS: M|P black-circle monogram, numbered eyebrows, thin vertical rules, square bullets, outline category icons (house/building/factory/org-chart), stat grids, blueprint grid texture, high-contrast B&W architectural photography.
+VOICE: Confident, precise, institutional, understated — a disciplined developer/investor. Outcomes, execution, value, stewardship. Short declarative statements. Never hype, never salesy, never casual. Numbers and specifics build trust.
+FORMAT: Instagram carousel / social portrait, 1080x1350.`,
+  cta:`CALL-TO-ACTION — every final/CTA slide MUST use THIS brand's own system (NEVER a competitor's; NEVER invent a phone/email — those are not confirmed):
+- Primary CTA (understated, professional): "Explore Development Opportunities" (also: "Schedule a Consultation" / "Partner With Us" / "View Our Portfolio").
+- Business: The MP Organization — Real Estate Development, Investment & Program Management.
+- Address (confirmed): 4480 S Cobb Dr SE, Smyrna, GA 30080. Keep it minimal, monochrome, premium.`,
+  offer:'', locations:'4480 S Cobb Dr SE, Smyrna, GA 30080', cta1:'Explore Development Opportunities', cta2:'Schedule a Consultation',
+  logo:(window.MP_LOGO || ''),
+  styleLib:(window.MP_STYLES || []),
+  gbpLib:[]
+};
 let brandKits = LS.get('vs_brandkits', { 'compare-deals': DEFAULT_CD });
 if(!brandKits['compare-deals']) brandKits['compare-deals'] = DEFAULT_CD;
 else { const cd=brandKits['compare-deals']; cd.colors=DEFAULT_CD.colors; cd.guidelines=DEFAULT_CD.guidelines; cd.cta=DEFAULT_CD.cta; cd.styleLib=DEFAULT_CD.styleLib; cd.gbpLib=DEFAULT_CD.gbpLib; cd.logo=DEFAULT_CD.logo; } // upgrade Compare Deals to the full kit
@@ -1130,6 +1157,8 @@ if(!brandKits['kaizenscapes']) brandKits['kaizenscapes'] = DEFAULT_KAIZEN; // Ka
 else { const kz=brandKits['kaizenscapes']; kz.colors=DEFAULT_KAIZEN.colors; kz.guidelines=DEFAULT_KAIZEN.guidelines; kz.cta=DEFAULT_KAIZEN.cta; kz.styleLib=DEFAULT_KAIZEN.styleLib; if(!kz.logo) kz.logo=DEFAULT_KAIZEN.logo; } // refresh code-defined assets; keep uploaded logo
 if(!brandKits['bounce-on-paradise']) brandKits['bounce-on-paradise'] = DEFAULT_BOP; // Bounce on Paradise baked in
 else { const bp=brandKits['bounce-on-paradise']; bp.colors=DEFAULT_BOP.colors; bp.guidelines=DEFAULT_BOP.guidelines; bp.cta=DEFAULT_BOP.cta; bp.styleLib=DEFAULT_BOP.styleLib; if(!bp.logo) bp.logo=DEFAULT_BOP.logo; } // refresh code-defined assets; keep uploaded logo
+if(!brandKits['the-mp-organization']) brandKits['the-mp-organization'] = DEFAULT_MP; // The MP Organization baked in
+else { const mp=brandKits['the-mp-organization']; mp.colors=DEFAULT_MP.colors; mp.guidelines=DEFAULT_MP.guidelines; mp.cta=DEFAULT_MP.cta; mp.styleLib=DEFAULT_MP.styleLib; if(!mp.logo) mp.logo=DEFAULT_MP.logo; } // refresh code-defined assets; keep uploaded logo
 function saveKits(){ LS.set('vs_brandkits', brandKits); }
 // Client dropdown order — Ruby Vet is the default (first) option
 function kitEntries(){ const p='ruby-vet'; const hide=[]; return [p, ...Object.keys(brandKits).filter(k=>k!==p)].filter(k=>brandKits[k] && !hide.includes(k)).map(k=>[k, brandKits[k]]); }

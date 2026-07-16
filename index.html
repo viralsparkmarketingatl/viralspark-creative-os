@@ -1320,6 +1320,36 @@ FORMAT: Instagram carousel / social portrait, 1080x1350.`,
   styleLib:(window.SPH_STYLES || []),
   gbpLib:[]
 };
+const DEFAULT_TTS = {
+  name:'Timberstone Tree Service',
+  colors:[
+    {name:'Timber Orange',    hex:'#E37B24'},
+    {name:'Burnished Orange', hex:'#B95E18'},
+    {name:'Clean White',      hex:'#FFFFFF'},
+    {name:'Woodland Sand',    hex:'#F1E6D7'},
+    {name:'Storm Slate',      hex:'#73777A'},
+    {name:'Ash Gray',         hex:'#C9C6C1'},
+    {name:'Deep Bark',        hex:'#26231F'},
+    {name:'Soft Black',       hex:'#11100E'}
+  ],
+  guidelines:`TIMBERSTONE TREE SERVICE — BRAND GUIDELINES (follow exactly).
+BUSINESS: Timberstone Tree Service (descriptor "Landscape - Tree Service") — the dependable local expert Metro Atlanta homeowners, HOAs, property managers, commercial owners, builders, and storm customers call for tree removal, tree trimming, stump grinding, storm cleanup, and land clearing. Archetype: The Protector + The Craftsman — skilled crews, professional equipment, fast response, clean results. Primary tagline "Safe Trees. Clean Yards. Fast Help." Supporting "Tree care that protects your home." Emergency "Storm damage? We're ready." Answer the customer's real fear fast: Is this tree dangerous? Will it hit my house? What will it cost? Will you damage my yard? Will it be cleaned up?
+COLORS (light-first, premium; use these EXACT hex): Timber Orange #E37B24 is the PRIMARY orange — CTAs, highlights, the one key headline word, phone number, emergency messaging. Burnished Orange #B95E18 is a MINOR gradient/hover accent ONLY — use it sparingly; when in doubt prefer Timber Orange #E37B24 (do not let the burnished tone dominate). Clean White #FFFFFF (primary background, 55-65%), Woodland Sand #F1E6D7 (warm cards/premium light grounds), Storm Slate #73777A (supporting text/rules), Ash Gray #C9C6C1 (quiet borders/soft panels), Deep Bark #26231F (high-contrast dark sections, storm graphics), Soft Black #11100E (premium headlines, overlays, max contrast). RULE: start with white space; use sand & ash for quiet structure; add deep bark/soft black for confident contrast; Timber Orange guides attention to the headline, phone, CTA, or urgent message — never covers every surface. Standard ~55% white / 20% sand-ash / 15% bark-black / 10% orange. Emergency graphics ~45% deep-bark/black / 30% orange / 20% white.
+TYPOGRAPHY: Display = Poppins ExtraBold (hero headlines, ads, large service names; 700-800 weight, under ~9 words, 90-105% line height, slight negative tracking). Secondary = Poppins SemiBold (section headings, buttons, nav). Body = Inter Regular (145-160% line height, 45-75 char columns). Utility = Roboto Condensed Bold, ALL CAPS (emergency banners, phone numbers, labels, locations). All-caps only for short labels/service names/emergency utilities.
+LAYOUT — DO: one dominant headline, one short explanation, no more than three benefits, one obvious CTA (understand it in two seconds). Layout families: Standard (55-65% real service photo + 35-45% text); Dark (Deep Bark bg, white headline, ONE Timber-Orange keyword, photo right); Light (white/sand bg, Deep-Bark headline, orange label, angled image edge); Emergency (Timber-Orange alert bar, Deep-Bark bg, large white headline, visible phone). Signature graphics: tree-ring pattern at 3-6% opacity, ONE angled "saw-cut" corner, thin orange directional lines toward the CTA, safety-stripe accents (emergency only), simple rounded monoline icons, before/after split frames with readable labels. DON'T: thin gray text over busy tree photos; more than one CTA; clutter.
+SIGNATURE ELEMENTS: the orange tree-with-roots logo, saw-cut angled corner, tree-ring texture, thin orange directional lines, monoline safety/service icons, before/after frames. PHOTOGRAPHY: real crews in safety gear/PPE, bucket trucks, chippers, sectional removals, ropes, clean yards, real storm cleanup, before/after. Natural greens, realistic skin tones, warm highlights, subtle charcoal gradients behind text. AVOID unsafe chainsaw positions, missing PPE, generic forests, fake lightning, extreme HDR, heavy green filters.
+VOICE: Friendly expertise, calm confidence — an experienced neighbor who knows tree work and explains the safest next step in plain language. 3rd-5th grade reading level. Routine = helpful/educational; dangerous tree = calm/direct/safety-focused; storm = urgent but reassuring; estimate = friendly/low-pressure. Words to USE: safe, clean, skilled, dependable, careful, fast, healthy, protected, local, prepared. Words to AVOID: cheap, hack, destroy, fearless, instant, perfect, guaranteed, lowest price. Light humor ~5% of routine content only (never during active emergencies), e.g. "That branch may look harmless. Your roof may disagree."
+FORMAT: Instagram carousel / social portrait, 1080x1350.`,
+  cta:`CALL-TO-ACTION — every final/CTA slide MUST use THIS brand's own system (NEVER a competitor's; this is Timberstone TREE SERVICE — orange #E37B24, distinct from Timberstone Landscape):
+- Primary CTA (Timber-Orange button, dark text): "Get a Free Quote" (also: "Request an Estimate" / "Schedule Tree Service" / "Call Timberstone").
+- Emergency CTA: "Call for Storm Help" (also: "Request Emergency Service" / "Get Fast Tree Removal").
+- Business: Timberstone Tree Service — tree removal, trimming, stump grinding, storm cleanup & land clearing, Metro Atlanta.
+- Contact (confirmed): phone (678) 956-0357 · info@timberstonetreeservice.com · www.timberstonetreeservice.com · 603 Hope Hollow Ln, Loganville, GA 30052. Tagline: Safe Trees. Clean Yards. Fast Help.`,
+  offer:'', locations:'Metro Atlanta · Loganville, GA', cta1:'Get a Free Quote', cta2:'(678) 956-0357',
+  logo:(window.TTS_LOGO || ''),
+  styleLib:(window.TTS_STYLES || []),
+  gbpLib:[]
+};
 let brandKits = LS.get('vs_brandkits', { 'compare-deals': DEFAULT_CD });
 if(!brandKits['compare-deals']) brandKits['compare-deals'] = DEFAULT_CD;
 else { const cd=brandKits['compare-deals']; cd.colors=DEFAULT_CD.colors; cd.guidelines=DEFAULT_CD.guidelines; cd.cta=DEFAULT_CD.cta; cd.styleLib=DEFAULT_CD.styleLib; cd.gbpLib=DEFAULT_CD.gbpLib; cd.logo=DEFAULT_CD.logo; } // upgrade Compare Deals to the full kit
@@ -1349,6 +1379,8 @@ if(!brandKits['interior-transformation-remodeling']) brandKits['interior-transfo
 else { const it=brandKits['interior-transformation-remodeling']; it.colors=DEFAULT_ITR.colors; it.guidelines=DEFAULT_ITR.guidelines; it.cta=DEFAULT_ITR.cta; it.styleLib=DEFAULT_ITR.styleLib; if(!it.logo) it.logo=DEFAULT_ITR.logo; } // refresh code-defined assets; keep uploaded logo
 if(!brandKits['southern-premier-health']) brandKits['southern-premier-health'] = DEFAULT_SPH; // Southern Premier Health baked in
 else { const sp=brandKits['southern-premier-health']; sp.colors=DEFAULT_SPH.colors; sp.guidelines=DEFAULT_SPH.guidelines; sp.cta=DEFAULT_SPH.cta; sp.styleLib=DEFAULT_SPH.styleLib; if(!sp.logo) sp.logo=DEFAULT_SPH.logo; } // refresh code-defined assets; keep uploaded logo
+if(!brandKits['timberstone-tree-service']) brandKits['timberstone-tree-service'] = DEFAULT_TTS; // Timberstone Tree Service baked in
+else { const tt=brandKits['timberstone-tree-service']; tt.colors=DEFAULT_TTS.colors; tt.guidelines=DEFAULT_TTS.guidelines; tt.cta=DEFAULT_TTS.cta; tt.styleLib=DEFAULT_TTS.styleLib; if(!tt.logo) tt.logo=DEFAULT_TTS.logo; } // refresh code-defined assets; keep uploaded logo
 function saveKits(){ LS.set('vs_brandkits', brandKits); }
 // Client dropdown order — Ruby Vet is the default (first) option
 function kitEntries(){ const p='ruby-vet'; const hide=[]; return [p, ...Object.keys(brandKits).filter(k=>k!==p)].filter(k=>brandKits[k] && !hide.includes(k)).map(k=>[k, brandKits[k]]); }

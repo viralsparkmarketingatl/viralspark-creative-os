@@ -779,6 +779,8 @@ canvas#stage{display:none}
         <textarea id="bkColors" style="min-height:100px" placeholder="Sea #638AB8&#10;Accent Red #992822&#10;Blush #F2E0D9&#10;Sunflower #FBB600"></textarea>
         <label class="f" style="margin-top:14px">Brand guidelines — the rulebook (business · colors + usage rules · fonts · layout do's/don'ts · signature elements · voice)</label>
         <textarea id="bkGuidelines" style="min-height:210px" placeholder="BUSINESS: …&#10;COLORS (exact hex + usage rules): …&#10;TYPOGRAPHY: …&#10;LAYOUT DO: …  LAYOUT DON'T: …&#10;SIGNATURE ELEMENTS: …&#10;VOICE: …&#10;FORMAT: Instagram carousel, portrait 4:5, 1080x1350."></textarea>
+        <label class="f" style="margin-top:14px">Buffer API token <span style="color:var(--vs-text-3);font-weight:400">— this client's own key. Publishing routes to <b>their</b> channels. Get it at publish.buffer.com/settings/api. Leave blank to use the global key.</span></label>
+        <input id="bkBuffer" type="password" autocomplete="off" placeholder="Paste this client's Buffer token…">
         <div class="actions"><button class="btn primary" style="width:200px" id="bkSave">Save Brand Kit</button></div>
       </div>
       <div class="card">
@@ -2510,7 +2512,9 @@ if($('muTtsBtn')) $('muTtsBtn').onclick=async()=>{
 /* ---------- PUBLISHING (Buffer) ---------- */
 function pbEndpoint(){ return LS.get('vs_buffer_endpoint','https://creative-os-api.vercel.app/api/buffer-publish'); }
 async function pbCall(payload){
-  const r=await fetch(pbEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  // Route to the SELECTED client's own Buffer account (their token from the brand kit); endpoint falls back to the global key.
+  const cb=activeBrand()||{}; const tk=(cb.buffer&&cb.buffer.token)||'';
+  const r=await fetch(pbEndpoint(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({token:tk},payload))});
   const d=await r.json().catch(()=>({error:'bad response'}));
   if(!r.ok) throw new Error(d.error||('HTTP '+r.status));
   return d;
@@ -2519,12 +2523,13 @@ let pbMedia=[]; // [{url,type}]
 const PB_ICON={twitter:'𝕏',x:'𝕏',facebook:'📘',instagram:'📸',linkedin:'💼',tiktok:'🎵',threads:'🧵',bluesky:'🦋',pinterest:'📌',youtube:'▶️',googlebusiness:'🏢',mastodon:'🐘'};
 let pbChannelsCache=[];
 async function pbLoadChannels(){
-  const box=$('pbChannels'); const st=$('pbStatus');
-  box.innerHTML='Loading…'; if(st){ st.className='status busy'; st.textContent='Fetching your Buffer channels…'; }
+  const box=$('pbChannels'); const st=$('pbStatus'); const cb=activeBrand()||{}; const who=cb.name||'this client';
+  if(!(cb.buffer&&cb.buffer.token)){ box.innerHTML='<span style="color:var(--light)">No Buffer token saved for <b>'+who+'</b>. Add it in <b>Brand Kits</b> (or a global key will be used).</span>'; }
+  box.innerHTML='Loading…'; if(st){ st.className='status busy'; st.textContent='Fetching '+who+'’s Buffer channels…'; }
   try{
     const d=await pbCall({action:'channels'});
     pbChannelsCache=d.channels||[];
-    if(!pbChannelsCache.length){ box.innerHTML='<span style="color:var(--light)">No channels found on this Buffer account.</span>'; if(st){ st.className='status'; st.textContent='No channels connected in Buffer.'; } return; }
+    if(!pbChannelsCache.length){ box.innerHTML='<span style="color:var(--light)">No channels found on '+who+'’s Buffer account.</span>'; if(st){ st.className='status'; st.textContent='No channels connected in Buffer.'; } return; }
     box.innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:6px"><button class="btn" id="pbAll" type="button" style="padding:4px 10px">Select all</button><button class="btn" id="pbNone" type="button" style="padding:4px 10px">Clear</button></div>'
       +pbChannelsCache.map(c=>'<label style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid var(--border);cursor:pointer"><input type="checkbox" class="pbCh" value="'+c.id+'"><span>'+(PB_ICON[(c.service||'').toLowerCase()]||'🔗')+'</span><span>'+(c.name||c.service||c.id)+'</span><span style="color:var(--light);font-size:12px">'+(c.service||'')+'</span></label>').join('');
     $('pbAll').onclick=()=>box.querySelectorAll('.pbCh').forEach(x=>x.checked=true);
@@ -2737,6 +2742,7 @@ function loadKitForm(){
   $('bkNavy').value=b.navy||'';$('bkYellow').value=b.yellow||'';$('bkBlue').value=b.blue||'';
   if($('bkColors'))$('bkColors').value=colorsToText(b.colors);
   if($('bkGuidelines'))$('bkGuidelines').value=b.guidelines||'';
+  if($('bkBuffer'))$('bkBuffer').value=(b.buffer&&b.buffer.token)||'';
   const lg=$('bkLogo'); if(b.logo){lg.src=b.logo;lg.style.display='';}else{lg.style.display='none';}
   renderBrandStyleLib();
 }
@@ -2800,6 +2806,7 @@ $('bkSave').onclick=()=>{
   b.navy=$('bkNavy').value;b.yellow=$('bkYellow').value;b.blue=$('bkBlue').value;
   if($('bkColors'))b.colors=textToColors($('bkColors').value);
   if($('bkGuidelines'))b.guidelines=$('bkGuidelines').value;
+  if($('bkBuffer'))b.buffer=Object.assign({},b.buffer,{token:$('bkBuffer').value.trim()});
   saveKits(); fillClients(); fillBkClients(); $('bkSave').textContent='Saved ✓'; setTimeout(()=>$('bkSave').textContent='Save Brand Kit',1200);
 };
 

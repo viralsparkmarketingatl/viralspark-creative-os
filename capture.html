@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c0f14">
+<title>Compare Deals · Inventory Capture</title>
+<style>
+  :root{--red:#e01f26;--red2:#b3161c;--ink:#0c0f14;--card:#151a22;--line:#232b36;--mut:#8b95a4;--txt:#eef2f7;--ok:#28c76f;--warn:#f5a623}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--ink);color:var(--txt);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:90px}
+  header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#11151c,#0c0f14);border-bottom:1px solid var(--line);padding:14px 16px calc(14px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px}
+  header .logo{width:34px;height:34px;border-radius:8px;background:var(--red);display:grid;place-items:center;font-weight:900;font-size:18px}
+  header h1{font-size:17px;margin:0;font-weight:800;letter-spacing:.2px}
+  header .sub{font-size:11px;color:var(--mut);margin-top:1px}
+  header .gear{margin-left:auto;background:none;border:none;color:var(--mut);font-size:20px;padding:6px}
+  .wrap{max-width:640px;margin:0 auto;padding:16px}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:800;cursor:pointer}
+  .btn.primary{background:var(--red);color:#fff}.btn.primary:active{background:var(--red2)}
+  .btn.ghost{background:var(--card);color:var(--txt);border:1px solid var(--line)}
+  .btn.sm{padding:11px 14px;font-size:14px;border-radius:10px;width:auto}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+  .muted{color:var(--mut)}.tiny{font-size:12px}.center{text-align:center}
+  .row{display:flex;gap:10px;align-items:center}.between{justify-content:space-between}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .thumb{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:#0a0d12;border:1px solid var(--line)}
+  .thumb img{width:100%;height:100%;object-fit:cover}
+  .thumb .x{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);border:none;color:#fff;width:24px;height:24px;border-radius:50%;font-size:14px;cursor:pointer}
+  .thumb .tag{position:absolute;bottom:0;left:0;right:0;background:rgba(224,31,38,.92);color:#fff;font-size:10px;font-weight:800;text-align:center;padding:2px;letter-spacing:.04em}
+  .add{display:grid;place-items:center;aspect-ratio:1;border-radius:10px;border:2px dashed var(--line);color:var(--mut);cursor:pointer;font-size:13px;text-align:center;padding:6px}
+  .field{margin-bottom:12px}.field label{display:block;font-size:12px;color:var(--mut);margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+  .field input,.field textarea,.field select{width:100%;background:#0a0d12;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:11px 12px;font-size:15px;font-family:inherit}
+  .field textarea{min-height:96px;resize:vertical}
+  .pill{display:inline-flex;align-items:center;gap:5px;background:#0a0d12;border:1px solid var(--line);border-radius:20px;padding:5px 11px;font-size:12px;font-weight:700}
+  .pill.ok{border-color:var(--ok);color:var(--ok)}.pill.warn{border-color:var(--warn);color:var(--warn)}
+  .save{font-size:34px;font-weight:900;color:var(--ok)}.msrp{text-decoration:line-through;color:var(--mut)}
+  .listItem{display:flex;gap:12px;align-items:center;cursor:pointer}
+  .listItem .li-img{width:56px;height:56px;border-radius:10px;object-fit:cover;background:#0a0d12;border:1px solid var(--line);flex:0 0 auto}
+  .fab{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));max-width:608px;margin:0 auto;z-index:15}
+  .hidden{display:none}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:end center;z-index:40}
+  .sheet{background:var(--card);border-top-left-radius:20px;border-top-right-radius:20px;width:100%;max-width:640px;padding:20px 16px calc(20px + env(safe-area-inset-bottom));max-height:86vh;overflow:auto}
+  .spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .step{font-size:13px;padding:8px 0;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
+  .step:last-child{border:none}
+  input[type=file]{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">CD</div>
+  <div><h1>Inventory Capture</h1><div class="sub">Compare Deals · in-store listings</div></div>
+  <button class="gear" onclick="openSettings()">⚙︎</button>
+</header>
+
+<!-- ================= HOME (listing list) ================= -->
+<div id="home" class="wrap">
+  <div id="listWrap"></div>
+  <div id="empty" class="card center muted" style="padding:40px 16px">
+    <div style="font-size:40px">📦</div>
+    <div style="font-weight:800;color:var(--txt);margin-top:6px">No listings yet</div>
+    <div class="tiny" style="margin-top:4px">Tap <b>Create New Product Listing</b> to add your first item.</div>
+  </div>
+</div>
+<div class="fab" id="homeFab"><button class="btn primary" onclick="newListing()">＋ Create New Product Listing</button></div>
+
+<!-- ================= CAPTURE ================= -->
+<div id="capture" class="wrap hidden">
+  <div class="row between" style="margin-bottom:12px">
+    <button class="btn ghost sm" onclick="go('home')">← Back</button>
+    <span class="pill" id="capState">New listing</span>
+  </div>
+
+  <div class="card">
+    <div class="row between" style="margin-bottom:10px"><b>Product photos</b><span class="tiny muted">the angles that sell</span></div>
+    <div class="grid" id="photoGrid">
+      <label class="add">📷<br>Add photo<input type="file" accept="image/*" capture="environment" onchange="addPhotos(event,'product')"></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row between" style="margin-bottom:10px"><b>Barcode sticker</b><span class="tiny muted">reads U# + model + price</span></div>
+    <div id="stickerBox">
+      <label class="btn ghost" style="border-style:dashed">🏷️ Snap the sticker<input type="file" accept="image/*" capture="environment" onchange="addPhotos(event,'sticker')"></label>
+    </div>
+  </div>
+
+  <button class="btn primary" id="processBtn" onclick="processListing()" style="margin-top:4px">⚡ Read sticker &amp; build listing</button>
+  <div id="procSteps" class="card hidden" style="margin-top:12px"></div>
+</div>
+
+<!-- ================= REVIEW / EDIT ================= -->
+<div id="review" class="wrap hidden">
+  <div class="row between" style="margin-bottom:12px">
+    <button class="btn ghost sm" onclick="go('capture')">← Photos</button>
+    <span class="pill ok" id="revState">Review</span>
+  </div>
+
+  <div class="card center">
+    <div class="tiny muted" id="revUid">U—</div>
+    <div style="font-size:22px;font-weight:900" id="revModel">MODEL</div>
+    <div style="margin-top:8px"><span class="msrp" id="revMsrp"></span> &nbsp; <span class="save" id="revPrice"></span></div>
+    <div id="revCond" class="pill warn" style="margin-top:8px">condition</div>
+    <div id="revSavePct" class="tiny" style="margin-top:6px;color:var(--ok);font-weight:800"></div>
+  </div>
+
+  <div class="card">
+    <div class="field"><label>Listing title</label><input id="fTitle"></div>
+    <div class="field"><label>Brand</label><input id="fBrand"></div>
+    <div class="field"><label>Category</label><input id="fCat"></div>
+    <div class="field"><label>Description (the copy that sells)</label><textarea id="fDesc"></textarea></div>
+    <div class="field"><label>Key specs</label><textarea id="fSpecs" style="min-height:70px"></textarea></div>
+    <div class="row" style="gap:10px">
+      <div class="field" style="flex:1"><label>MSRP $</label><input id="fMsrp" type="number" inputmode="decimal"></div>
+      <div class="field" style="flex:1"><label>Our price $</label><input id="fPrice" type="number" inputmode="decimal"></div>
+    </div>
+    <div class="field"><label>Condition</label><input id="fCond"></div>
+  </div>
+
+  <button class="btn primary" onclick="saveListing()">💾 Save listing</button>
+  <div class="tiny muted center" style="margin-top:10px">Saved listings become your Local Inventory Ads feed.</div>
+</div>
+
+<!-- ================= SETTINGS ================= -->
+<div id="settings" class="modal hidden" onclick="if(event.target===this)closeSettings()">
+  <div class="sheet">
+    <div class="row between"><b>Settings</b><button class="btn ghost sm" onclick="closeSettings()">Done</button></div>
+    <div class="field" style="margin-top:14px"><label>API base</label><input id="sBase" placeholder="https://creative-os-api.vercel.app"></div>
+    <div class="tiny muted">Your Vercel project. Endpoints used: <b>/api/bunny-upload</b>, <b>/api/extract-sticker</b>, <b>/api/generate-listing</b>.</div>
+    <div class="field" style="margin-top:16px"><label>Store code (for the Merchant feed)</label><input id="sStore" placeholder="e.g. lawrenceville / morrow"></div>
+    <div class="field"><label>Master Sheet webhook URL</label><input id="sSheet" placeholder="https://script.google.com/macros/s/…/exec"></div>
+    <div class="tiny muted">Every saved listing appends a row to your Google Sheet — your master document of all inventory. Paste the Apps Script web-app URL (setup in APPS-SCRIPT-SETUP.md).</div>
+    <button class="btn ghost sm" style="margin-top:16px;color:var(--warn)" onclick="if(confirm('Export all listings as JSON?'))exportListings()">⬇︎ Export listings (JSON feed)</button>
+  </div>
+</div>
+
+<script>
+const LS={g:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return localStorage.getItem(k)||d}},s:(k,v)=>localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v))};
+if(!LS.g('cd_base'))LS.s('cd_base','https://creative-os-api.vercel.app');
+const base=()=>LS.g('cd_base','https://creative-os-api.vercel.app').replace(/\/$/,'');
+let listings=LS.g('cd_listings',[]);
+let draft=null; // {product:[{data,url}], sticker:{data,url}, ...fields}
+
+// ---------- nav ----------
+function go(v){['home','capture','review'].forEach(id=>document.getElementById(id).classList.toggle('hidden',id!==v));document.getElementById('homeFab').classList.toggle('hidden',v!=='home');if(v==='home')renderList();window.scrollTo(0,0)}
+function openSettings(){document.getElementById('sBase').value=LS.g('cd_base','');document.getElementById('sStore').value=LS.g('cd_store','');document.getElementById('sSheet').value=LS.g('cd_sheet','');document.getElementById('settings').classList.remove('hidden')}
+function closeSettings(){LS.s('cd_base',document.getElementById('sBase').value.trim()||'https://creative-os-api.vercel.app');LS.s('cd_store',document.getElementById('sStore').value.trim());LS.s('cd_sheet',document.getElementById('sSheet').value.trim());document.getElementById('settings').classList.add('hidden')}
+// push one listing to the master Google Sheet (Apps Script webhook). no-cors + string body = no preflight.
+async function syncToSheet(l){const url=LS.g('cd_sheet','');if(!url)return{skipped:true};try{await fetch(url,{method:'POST',mode:'no-cors',body:JSON.stringify(l)});return{sent:true}}catch(e){return{error:e.message}}}
+
+// ---------- home list ----------
+function renderList(){
+  const w=document.getElementById('listWrap');document.getElementById('empty').classList.toggle('hidden',listings.length>0);
+  w.innerHTML=listings.map((l,i)=>`<div class="card listItem" onclick="editListing(${i})">
+    <img class="li-img" src="${(l.photos&&l.photos[0])||''}" alt="">
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.title||l.model||'Untitled'}</div>
+      <div class="tiny muted">${l.uniqueId||''} · ${l.model||''}</div>
+      <div class="tiny"><span class="save" style="font-size:16px">$${l.price||'—'}</span> ${l.msrp?`<span class="msrp tiny">$${l.msrp}</span>`:''} ${l.condition?`· ${l.condition}`:''}</div>
+    </div>
+    <span class="pill ${l.status==='ready'?'ok':''}">${l.status||'draft'}</span>
+  </div>`).join('');
+}
+
+// ---------- capture ----------
+function newListing(){draft={product:[],sticker:null};document.getElementById('procSteps').classList.add('hidden');renderPhotos();renderSticker();go('capture');document.getElementById('capState').textContent='New listing'}
+function fileToDataURL(f){return new Promise(r=>{const rd=new FileReader();rd.onload=()=>r(rd.result);rd.readAsDataURL(f)})}
+async function addPhotos(e,kind){const f=e.target.files[0];if(!f)return;const data=await fileToDataURL(f);if(kind==='sticker'){draft.sticker={data};renderSticker()}else{draft.product.push({data});renderPhotos()}e.target.value=''}
+function renderPhotos(){
+  const g=document.getElementById('photoGrid');
+  g.innerHTML=draft.product.map((p,i)=>`<div class="thumb"><img src="${p.url||p.data}"><button class="x" onclick="draft.product.splice(${i},1);renderPhotos()">✕</button></div>`).join('')
+    +`<label class="add">📷<br>Add photo<input type="file" accept="image/*" capture="environment" onchange="addPhotos(event,'product')"></label>`;
+}
+function renderSticker(){
+  const b=document.getElementById('stickerBox');
+  b.innerHTML=draft.sticker?`<div class="thumb" style="max-width:160px;aspect-ratio:1.6"><img src="${draft.sticker.url||draft.sticker.data}"><span class="tag">BARCODE · DATA ONLY</span><button class="x" onclick="draft.sticker=null;renderSticker()">✕</button></div>`
+    :`<label class="btn ghost" style="border-style:dashed">🏷️ Snap the sticker<input type="file" accept="image/*" capture="environment" onchange="addPhotos(event,'sticker')"></label>`;
+}
+
+// ---------- upload helper ----------
+async function upload(dataUrl,folder,filename){
+  const r=await fetch(base()+'/api/bunny-upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:dataUrl,folder,filename})});
+  if(!r.ok)throw new Error('upload '+r.status);const j=await r.json();return j.url;
+}
+async function post(path,body){const r=await fetch(base()+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const t=await r.text();let j;try{j=JSON.parse(t)}catch{j={raw:t}}return{ok:r.ok,status:r.status,j}}
+
+// ---------- process ----------
+function step(html){const el=document.getElementById('procSteps');el.classList.remove('hidden');el.insertAdjacentHTML('beforeend',`<div class="step">${html}</div>`)}
+async function processListing(){
+  if(!draft.sticker){alert('Snap the barcode sticker first — it reads the U#, model and price.');return}
+  document.getElementById('procSteps').innerHTML='';document.getElementById('processBtn').disabled=true;
+  const folder='compare-deals/'+(Date.now());
+  try{
+    // 1) upload product photos to CDN
+    step('<span class="spin"></span> Uploading '+draft.product.length+' product photo(s)…');
+    for(const p of draft.product){ if(!p.url) p.url=await upload(p.data,folder,'photo'); }
+    step('✅ Photos on CDN');
+    // 2) read the sticker (vision)
+    step('<span class="spin"></span> Reading the barcode sticker…');
+    let ex=await post('/api/extract-sticker',{image:draft.sticker.data});
+    let d=ex.ok?ex.j:null;
+    if(!d){ step('⚠️ extract-sticker not ready — enter the sticker manually'); d={}; }
+    else step('✅ Read: '+(d.uniqueId||'?')+' · '+(d.model||'?'));
+    // 3) build the listing from the model#
+    let listing={};
+    if(d.model){ step('<span class="spin"></span> Building listing for '+d.model+'…');
+      const gl=await post('/api/generate-listing',{model:d.model,msrp:d.msrp,price:d.price,condition:d.condition});
+      if(gl.ok){listing=gl.j;step('✅ Listing copy generated')} else step('⚠️ generate-listing not ready — write copy manually'); }
+    fillReview(Object.assign({photos:draft.product.map(p=>p.url)},d,listing));
+    go('review');
+  }catch(err){step('❌ '+err.message)}
+  document.getElementById('processBtn').disabled=false;
+}
+
+// ---------- review ----------
+function fillReview(o){
+  draft.data=o;
+  document.getElementById('revUid').textContent=o.uniqueId||'U—';
+  document.getElementById('revModel').textContent=o.model||'MODEL';
+  document.getElementById('revMsrp').textContent=o.msrp?'$'+o.msrp:'';
+  document.getElementById('revPrice').textContent=o.price?'$'+o.price:'';
+  document.getElementById('revCond').textContent=o.condition||'—';
+  const pct=(o.msrp&&o.price)?Math.round((1-o.price/o.msrp)*100):0;
+  document.getElementById('revSavePct').textContent=pct>0?('SAVE '+pct+'% vs MSRP'):'';
+  document.getElementById('fTitle').value=o.title||'';
+  document.getElementById('fBrand').value=o.brand||'';
+  document.getElementById('fCat').value=o.category||'';
+  document.getElementById('fDesc').value=o.description||'';
+  document.getElementById('fSpecs').value=Array.isArray(o.specs)?o.specs.join('\n'):(o.specs||'');
+  document.getElementById('fMsrp').value=o.msrp||'';
+  document.getElementById('fPrice').value=o.price||'';
+  document.getElementById('fCond').value=o.condition||'';
+}
+async function saveListing(){
+  const g=id=>document.getElementById(id).value.trim();
+  const l={id:draft.data.uniqueId||('L'+Date.now()),createdAt:new Date().toISOString(),
+    uniqueId:draft.data.uniqueId||'',model:draft.data.model||'',
+    title:g('fTitle'),brand:g('fBrand'),category:g('fCat'),description:g('fDesc'),
+    specs:g('fSpecs').split('\n').filter(Boolean),
+    msrp:+g('fMsrp')||null,price:+g('fPrice')||null,condition:g('fCond'),
+    storeCode:LS.g('cd_store',''),photos:draft.data.photos||[],
+    status:(g('fTitle')&&g('fPrice'))?'ready':'draft'};
+  const i=listings.findIndex(x=>x.id===l.id&&x.uniqueId);
+  if(i>=0)listings[i]=l;else listings.unshift(l);
+  LS.s('cd_listings',listings);
+  // send it out into the universe: append to the master sheet + report back
+  const r=await syncToSheet(l);
+  toast(r.skipped?'💾 Saved on device (set Master Sheet URL in ⚙︎ to sync)':r.error?('💾 Saved · sheet sync failed: '+r.error):'✅ Saved &amp; synced to master sheet');
+  go('home');
+}
+function toast(html){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#151a22;border:1px solid var(--line);color:#eef2f7;padding:12px 18px;border-radius:12px;z-index:60;font-size:14px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:90%;text-align:center';document.body.appendChild(t)}t.innerHTML=html;t.style.opacity='1';clearTimeout(t._h);t._h=setTimeout(()=>t.style.opacity='0',3200)}
+function editListing(i){const l=listings[i];draft={product:(l.photos||[]).map(u=>({url:u,data:u})),sticker:null,data:l};renderPhotos();renderSticker();fillReview(l);go('review')}
+function exportListings(){const blob=new Blob([JSON.stringify(listings,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='compare-deals-inventory.json';a.click()}
+
+renderList();
+</script>
+</body>
+</html>
